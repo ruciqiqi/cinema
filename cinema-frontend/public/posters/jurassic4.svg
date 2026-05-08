@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 450">
+  <defs><linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#1a3a1a"/><stop offset="50%" stop-color="#4a9a4a"/><stop offset="100%" stop-color="#8fd88f"/></linearGradient></defs>
+  <rect width="300" height="450" fill="url(#bg)"/>
+  <text x="150" y="110" text-anchor="middle" font-size="55">🦖</text>
+  <text x="150" y="210" text-anchor="middle" font-family="sans-serif" font-size="14" fill="rgba(255,255,255,.7)" letter-spacing="6">科幻 / 冒险</text>
+  <text x="150" y="250" text-anchor="middle" font-family="sans-serif" font-size="30" font-weight="bold" fill="white">侏罗纪世界4</text>
+  <text x="150" y="280" text-anchor="middle" font-family="sans-serif" font-size="18" fill="rgba(255,255,255,.8)">新生代</text>
+  <rect x="80" y="305" width="140" height="28" rx="14" fill="rgba(255,107,107,.2)" stroke="rgba(255,107,107,.4)"/>
+  <text x="150" y="324" text-anchor="middle" font-family="sans-serif" font-size="13" font-weight="700" fill="#ff6b6b">2026-06-15 上映</text>
+  <rect x="60" y="350" width="180" height="1.5" fill="rgba(255,255,255,.15)"/>
+  <text x="150" y="375" text-anchor="middle" font-family="sans-serif" font-size="10" fill="rgba(255,255,255,.5)">导演：加里斯·爱德华斯</text>
+  <text x="150" y="393" text-anchor="middle" font-family="sans-serif" font-size="10" fill="rgba(255,255,255,.5)">克里斯·帕拉特 / 布莱丝·达拉斯·霍华德</text>
+</svg>

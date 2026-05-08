@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 450">
+  <defs><linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#111"/><stop offset="50%" stop-color="#333366"/><stop offset="100%" stop-color="#555599"/></linearGradient></defs>
+  <rect width="300" height="450" fill="url(#bg)"/>
+  <text x="150" y="110" text-anchor="middle" font-size="60">🖤</text>
+  <text x="150" y="215" text-anchor="middle" font-family="sans-serif" font-size="14" fill="rgba(255,255,255,.7)" letter-spacing="6">动作 / 科幻</text>
+  <text x="150" y="255" text-anchor="middle" font-family="sans-serif" font-size="28" font-weight="bold" fill="white">毒液3</text>
+  <text x="150" y="283" text-anchor="middle" font-family="sans-serif" font-size="18" fill="rgba(255,255,255,.8)">共生之怒</text>
+  <rect x="80" y="308" width="140" height="28" rx="14" fill="rgba(255,107,107,.2)" stroke="rgba(255,107,107,.4)"/>
+  <text x="150" y="327" text-anchor="middle" font-family="sans-serif" font-size="13" font-weight="700" fill="#ff6b6b">2026-07-25 上映</text>
+  <rect x="60" y="353" width="180" height="1.5" fill="rgba(255,255,255,.15)"/>
+  <text x="150" y="378" text-anchor="middle" font-family="sans-serif" font-size="10" fill="rgba(255,255,255,.5)">导演：凯莉·马塞尔</text>
+  <text x="150" y="396" text-anchor="middle" font-family="sans-serif" font-size="10" fill="rgba(255,255,255,.5)">汤姆·哈迪 / 朱诺·坦普尔</text>
+</svg>

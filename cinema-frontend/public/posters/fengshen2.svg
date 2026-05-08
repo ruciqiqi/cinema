@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 450">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#3e0a0a"/>
+      <stop offset="50%" style="stop-color:#a02020"/>
+      <stop offset="100%" style="stop-color:#e74c3c"/>
+    </linearGradient>
+    <filter id="glow"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+  <rect width="300" height="450" fill="url(#bg)"/>
+  <path d="M60,120 L240,120 L220,80 L80,80 Z" fill="rgba(255,255,255,0.08)"/>
+  <path d="M150,40 L170,85 L220,85 L180,115 L195,160 L150,135 L105,160 L120,115 L80,85 L130,85 Z" fill="rgba(255,215,0,0.15)"/>
+  <text x="150" y="220" text-anchor="middle" font-family="sans-serif" font-size="14" fill="rgba(255,255,255,0.7)" letter-spacing="6">奇幻 / 史诗</text>
+  <text x="150" y="260" text-anchor="middle" font-family="sans-serif" font-size="32" font-weight="bold" fill="white" filter="url(#glow)">封神第二部</text>
+  <text x="150" y="290" text-anchor="middle" font-family="sans-serif" font-size="12" fill="rgba(255,255,255,0.6)">2026-02-01 上映</text>
+  <rect x="60" y="320" width="180" height="2" fill="rgba(255,255,255,0.2)"/>
+  <text x="150" y="345" text-anchor="middle" font-family="sans-serif" font-size="10" fill="rgba(255,255,255,0.5)">导演：乌尔善</text>
+  <text x="150" y="365" text-anchor="middle" font-family="sans-serif" font-size="10" fill="rgba(255,255,255,0.5)">主演：费翔 / 黄渤 / 于适</text>
+  <rect x="80" y="385" width="140" height="30" rx="15" fill="rgba(255,255,255,0.15)"/>
+  <text x="150" y="405" text-anchor="middle" font-family="sans-serif" font-size="18" font-weight="bold" fill="#ffd700">★ 8.9</text>
+</svg>

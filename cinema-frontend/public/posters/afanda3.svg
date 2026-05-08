@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 450">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#cc3300"/>
+      <stop offset="30%" style="stop-color:#ff4d1a"/>
+      <stop offset="60%" style="stop-color:#ff9933"/>
+      <stop offset="100%" style="stop-color:#ffcc00"/>
+    </linearGradient>
+    <filter id="glow"><feGaussianBlur stdDeviation="4" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+  <rect width="300" height="450" fill="url(#bg)"/>
+  <path d="M80,130 Q150,40 220,130" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="1.5"/>
+  <path d="M100,145 Q150,65 200,145" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+  <text x="150" y="110" text-anchor="middle" font-size="50">🔥</text>
+  <text x="150" y="235" text-anchor="middle" font-family="sans-serif" font-size="14" fill="rgba(255,255,255,0.8)" letter-spacing="6">科幻 / 冒险</text>
+  <text x="150" y="275" text-anchor="middle" font-family="sans-serif" font-size="32" font-weight="bold" fill="white" filter="url(#glow)">阿凡达3</text>
+  <text x="150" y="305" text-anchor="middle" font-family="sans-serif" font-size="18" fill="rgba(255,255,255,0.8)">火与灰</text>
+  <rect x="60" y="330" width="180" height="2" fill="rgba(255,255,255,0.2)"/>
+  <text x="150" y="355" text-anchor="middle" font-family="sans-serif" font-size="10" fill="rgba(255,255,255,0.6)">导演：詹姆斯·卡梅隆</text>
+  <text x="150" y="375" text-anchor="middle" font-family="sans-serif" font-size="10" fill="rgba(255,255,255,0.6)">主演：萨姆·沃辛顿 / 佐伊·索尔达娜</text>
+  <rect x="80" y="395" width="140" height="30" rx="15" fill="rgba(255,255,255,0.15)"/>
+  <text x="150" y="415" text-anchor="middle" font-family="sans-serif" font-size="18" font-weight="bold" fill="#ffd700">★ 9.3</text>
+</svg>

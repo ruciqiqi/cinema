@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 450">
+  <defs><linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#2a1a0a"/><stop offset="50%" stop-color="#885522"/><stop offset="100%" stop-color="#cc9955"/></linearGradient></defs>
+  <rect width="300" height="450" fill="url(#bg)"/>
+  <text x="150" y="110" text-anchor="middle" font-size="55">🏎️</text>
+  <text x="150" y="210" text-anchor="middle" font-family="sans-serif" font-size="14" fill="rgba(255,255,255,.7)" letter-spacing="6">动作 / 犯罪</text>
+  <text x="150" y="250" text-anchor="middle" font-family="sans-serif" font-size="30" font-weight="bold" fill="white">速度与激情12</text>
+  <rect x="80" y="275" width="140" height="28" rx="14" fill="rgba(255,107,107,.2)" stroke="rgba(255,107,107,.4)"/>
+  <text x="150" y="294" text-anchor="middle" font-family="sans-serif" font-size="13" font-weight="700" fill="#ff6b6b">2026-06-28 上映</text>
+  <rect x="60" y="320" width="180" height="1.5" fill="rgba(255,255,255,.15)"/>
+  <text x="150" y="345" text-anchor="middle" font-family="sans-serif" font-size="10" fill="rgba(255,255,255,.5)">导演：路易斯·莱特里尔</text>
+  <text x="150" y="363" text-anchor="middle" font-family="sans-serif" font-size="10" fill="rgba(255,255,255,.5)">范·迪塞尔 / 杰森·斯坦森</text>
+</svg>

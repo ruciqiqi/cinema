@@ -1,0 +1,204 @@
+package com.cinema.service;
+
+import com.cinema.config.JwtUtil;
+import com.cinema.entity.User;
+import com.cinema.repository.UserRepository;
+import org.springframework.stereotype.Service;
+import java.security.MessageDigest;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
+
+@Service
+public class UserService {
+    private final UserRepository userRepository;
+    private final JwtUtil jwtUtil;
+
+    public UserService(UserRepository userRepository, JwtUtil jwtUtil) {
+        this.userRepository = userRepository;
+        this.jwtUtil = jwtUtil;
+    }
+
+    public Map<String, Object> register(String username, String password, String phone) {
+        Map<String, Object> result = new HashMap<>();
+        if (username == null || username.trim().length() < 3) {
+            result.put("success", false);
+            result.put("message", "用户名至少3个字符");
+            return result;
+        }
+        if (password == null || password.trim().length() < 6) {
+            result.put("success", false);
+            result.put("message", "密码至少6个字符");
+            return result;
+        }
+        User exist = userRepository.findByUsername(username.trim());
+        if (exist != null) {
+            result.put("success", false);
+            result.put("message", "用户名已存在");
+            return result;
+        }
+        User user = new User();
+        user.setUsername(username.trim());
+        user.setPassword(hashPassword(password));
+        user.setPhone(phone != null ? phone.trim() : "");
+        user.setRole("user");
+        user.setCreatedAt(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        userRepository.save(user);
+
+        String token = jwtUtil.generateToken(user.getId(), user.getUsername(), user.getRole());
+        result.put("success", true);
+        result.put("token", token);
+        result.put("username", user.getUsername());
+        result.put("role", user.getRole());
+        return result;
+    }
+
+    public Map<String, Object> login(String username, String password) {
+        Map<String, Object> result = new HashMap<>();
+        User user = userRepository.findByUsername(username);
+        if (user == null) {
+            result.put("success", false);
+            result.put("message", "用户名或密码错误");
+            return result;
+        }
+        if (!user.getPassword().equals(hashPassword(password))) {
+            result.put("success", false);
+            result.put("message", "用户名或密码错误");
+            return result;
+        }
+        String token = jwtUtil.generateToken(user.getId(), user.getUsername(), user.getRole());
+        result.put("success", true);
+        result.put("token", token);
+        result.put("username", user.getUsername());
+        result.put("role", user.getRole());
+        result.put("phone", user.getPhone() != null ? user.getPhone() : "");
+        return result;
+    }
+
+    public Map<String, Object> getProfile(Long userId) {
+        Map<String, Object> result = new HashMap<>();
+        User user = userRepository.findById(userId).orElse(null);
+        if (user == null) {
+            result.put("success", false); result.put("message", "用户不存在"); return result;
+        }
+        result.put("success", true);
+        Map<String, Object> profile = new HashMap<>();
+        profile.put("id", user.getId());
+        profile.put("username", user.getUsername());
+        profile.put("phone", user.getPhone());
+        profile.put("email", user.getEmail());
+        profile.put("avatar", user.getAvatar());
+        profile.put("gender", user.getGender());
+        profile.put("birthday", user.getBirthday());
+        profile.put("realName", user.getRealName());
+        profile.put("idCard", user.getIdCard());
+        profile.put("memberLevel", user.getMemberLevel());
+        profile.put("points", user.getPoints());
+        profile.put("totalSpent", user.getTotalSpent());
+        profile.put("role", user.getRole());
+        profile.put("createdAt", user.getCreatedAt());
+        result.put("data", profile);
+        return result;
+    }
+
+    public Map<String, Object> updateProfile(Long userId, Map<String, Object> body) {
+        Map<String, Object> result = new HashMap<>();
+        User user = userRepository.findById(userId).orElse(null);
+        if (user == null) {
+            result.put("success", false); result.put("message", "用户不存在"); return result;
+        }
+        if (body.containsKey("phone")) user.setPhone((String) body.get("phone"));
+        if (body.containsKey("email")) user.setEmail((String) body.get("email"));
+        if (body.containsKey("gender")) user.setGender((String) body.get("gender"));
+        if (body.containsKey("birthday")) user.setBirthday((String) body.get("birthday"));
+        if (body.containsKey("avatar")) user.setAvatar((String) body.get("avatar"));
+        userRepository.save(user);
+        result.put("success", true);
+        result.put("data", user);
+        return result;
+    }
+
+    public Map<String, Object> changePassword(Long userId, String oldPwd, String newPwd) {
+        Map<String, Object> result = new HashMap<>();
+        User user = userRepository.findById(userId).orElse(null);
+        if (user == null) {
+            result.put("success", false); result.put("message", "用户不存在"); return result;
+        }
+        if (!user.getPassword().equals(hashPassword(oldPwd))) {
+            result.put("success", false); result.put("message", "原密码错误"); return result;
+        }
+        if (newPwd == null || newPwd.length() < 6) {
+            result.put("success", false); result.put("message", "新密码至少6个字符"); return result;
+        }
+        user.setPassword(hashPassword(newPwd));
+        userRepository.save(user);
+        result.put("success", true); result.put("message", "密码修改成功");
+        return result;
+    }
+
+    public Map<String, Object> realNameAuth(Long userId, String realName, String idCard) {
+        Map<String, Object> result = new HashMap<>();
+        User user = userRepository.findById(userId).orElse(null);
+        if (user == null) {
+            result.put("success", false); result.put("message", "用户不存在"); return result;
+        }
+        if (realName == null || realName.trim().isEmpty()) {
+            result.put("success", false); result.put("message", "请输入真实姓名"); return result;
+        }
+        if (idCard == null || idCard.trim().isEmpty()) {
+            result.put("success", false); result.put("message", "请输入身份证号"); return result;
+        }
+        user.setRealName(realName.trim());
+        user.setIdCard(idCard.trim());
+        userRepository.save(user);
+        result.put("success", true); result.put("message", "实名认证成功");
+        return result;
+    }
+
+    public Map<String, Object> getPoints(Long userId) {
+        Map<String, Object> result = new HashMap<>();
+        User user = userRepository.findById(userId).orElse(null);
+        if (user == null) {
+            result.put("success", false); result.put("message", "用户不存在"); return result;
+        }
+        result.put("success", true);
+        result.put("points", user.getPoints());
+        result.put("memberLevel", user.getMemberLevel());
+        result.put("totalSpent", user.getTotalSpent());
+        return result;
+    }
+
+    public Map<String, Object> redeemPoints(Long userId, Integer points) {
+        Map<String, Object> result = new HashMap<>();
+        User user = userRepository.findById(userId).orElse(null);
+        if (user == null) {
+            result.put("success", false); result.put("message", "用户不存在"); return result;
+        }
+        if (points == null || points <= 0) {
+            result.put("success", false); result.put("message", "兑换积分数量无效"); return result;
+        }
+        if (user.getPoints() < points) {
+            result.put("success", false); result.put("message", "积分不足"); return result;
+        }
+        user.setPoints(user.getPoints() - points);
+        userRepository.save(user);
+        double cash = points / 10.0; // 10 points = 1 yuan
+        result.put("success", true);
+        result.put("message", "已兑换 " + cash + " 元代金券");
+        result.put("cash", cash);
+        result.put("remainingPoints", user.getPoints());
+        return result;
+    }
+
+    private String hashPassword(String password) {
+        try {
+            MessageDigest md = MessageDigest.getInstance("SHA-256");
+            byte[] hash = md.digest(password.getBytes("UTF-8"));
+            StringBuilder sb = new StringBuilder();
+            for (byte b : hash) sb.append(String.format("%02x", b));
+            return sb.toString();
+        } catch (Exception e) {
+            return password;
+        }
+    }
+}

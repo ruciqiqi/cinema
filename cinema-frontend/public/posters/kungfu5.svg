@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 450">
+  <defs><linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#cc4400"/><stop offset="50%" stop-color="#ff9944"/><stop offset="100%" stop-color="#ffdd88"/></linearGradient></defs>
+  <rect width="300" height="450" fill="url(#bg)"/>
+  <text x="150" y="110" text-anchor="middle" font-size="55">🐼</text>
+  <text x="150" y="210" text-anchor="middle" font-family="sans-serif" font-size="14" fill="rgba(255,255,255,.8)" letter-spacing="6">动画 / 喜剧</text>
+  <text x="150" y="250" text-anchor="middle" font-family="sans-serif" font-size="30" font-weight="bold" fill="white">功夫熊猫5</text>
+  <rect x="80" y="278" width="140" height="28" rx="14" fill="rgba(255,107,107,.2)" stroke="rgba(255,107,107,.4)"/>
+  <text x="150" y="297" text-anchor="middle" font-family="sans-serif" font-size="13" font-weight="700" fill="#ff6b6b">2026-06-20 上映</text>
+  <rect x="60" y="323" width="180" height="1.5" fill="rgba(255,255,255,.15)"/>
+  <text x="150" y="348" text-anchor="middle" font-family="sans-serif" font-size="10" fill="rgba(255,255,255,.6)">导演：迈克·米切尔</text>
+  <text x="150" y="366" text-anchor="middle" font-family="sans-serif" font-size="10" fill="rgba(255,255,255,.6)">杰克·布莱克 / 安吉丽娜·朱莉</text>
+</svg>

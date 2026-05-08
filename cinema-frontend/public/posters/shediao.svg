@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 450">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#5c3a0e"/>
+      <stop offset="50%" style="stop-color:#a07040"/>
+      <stop offset="100%" style="stop-color:#d4a870"/>
+    </linearGradient>
+    <filter id="glow"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+  <rect width="300" height="450" fill="url(#bg)"/>
+  <path d="M150,40 L175,100 L240,100 L188,135 L208,195 L150,160 L92,195 L112,135 L60,100 L125,100 Z" fill="rgba(255,215,0,0.12)"/>
+  <text x="150" y="95" text-anchor="middle" font-size="35">⚔️</text>
+  <text x="150" y="230" text-anchor="middle" font-family="sans-serif" font-size="14" fill="rgba(255,255,255,0.7)" letter-spacing="6">武侠 / 动作</text>
+  <text x="150" y="270" text-anchor="middle" font-family="sans-serif" font-size="28" font-weight="bold" fill="white" filter="url(#glow)">射雕英雄传</text>
+  <text x="150" y="300" text-anchor="middle" font-family="sans-serif" font-size="18" fill="rgba(255,255,255,0.8)">侠之大者</text>
+  <rect x="60" y="325" width="180" height="2" fill="rgba(255,255,255,0.2)"/>
+  <text x="150" y="350" text-anchor="middle" font-family="sans-serif" font-size="10" fill="rgba(255,255,255,0.5)">导演：徐克</text>
+  <text x="150" y="370" text-anchor="middle" font-family="sans-serif" font-size="10" fill="rgba(255,255,255,0.5)">主演：肖战 / 庄达菲</text>
+  <rect x="80" y="390" width="140" height="30" rx="15" fill="rgba(255,255,255,0.15)"/>
+  <text x="150" y="410" text-anchor="middle" font-family="sans-serif" font-size="18" font-weight="bold" fill="#ffd700">★ 8.6</text>
+</svg>

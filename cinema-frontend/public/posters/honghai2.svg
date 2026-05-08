@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 450">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a1a1a"/>
+      <stop offset="50%" style="stop-color:#444"/>
+      <stop offset="100%" style="stop-color:#888"/>
+    </linearGradient>
+    <filter id="glow"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+  <rect width="300" height="450" fill="url(#bg)"/>
+  <circle cx="150" cy="110" r="50" fill="none" stroke="rgba(255,100,50,0.3)" stroke-width="2"/>
+  <circle cx="150" cy="110" r="35" fill="none" stroke="rgba(255,100,50,0.2)" stroke-width="1"/>
+  <polygon points="150,40 170,90 220,90 180,120 195,170 150,140 105,170 120,120 80,90 130,90" fill="rgba(255,100,50,0.15)"/>
+  <text x="150" y="220" text-anchor="middle" font-family="sans-serif" font-size="14" fill="rgba(255,255,255,0.7)" letter-spacing="6">动作 / 战争</text>
+  <text x="150" y="260" text-anchor="middle" font-family="sans-serif" font-size="32" font-weight="bold" fill="white" filter="url(#glow)">红海行动2</text>
+  <text x="150" y="290" text-anchor="middle" font-family="sans-serif" font-size="12" fill="rgba(255,255,255,0.6)">2026-03-15 上映</text>
+  <rect x="60" y="320" width="180" height="2" fill="rgba(255,255,255,0.2)"/>
+  <text x="150" y="345" text-anchor="middle" font-family="sans-serif" font-size="10" fill="rgba(255,255,255,0.5)">导演：林超贤</text>
+  <text x="150" y="365" text-anchor="middle" font-family="sans-serif" font-size="10" fill="rgba(255,255,255,0.5)">主演：张译 / 黄景瑜 / 海清</text>
+  <rect x="80" y="385" width="140" height="30" rx="15" fill="rgba(255,255,255,0.15)"/>
+  <text x="150" y="405" text-anchor="middle" font-family="sans-serif" font-size="18" font-weight="bold" fill="#ffd700">★ 8.7</text>
+</svg>

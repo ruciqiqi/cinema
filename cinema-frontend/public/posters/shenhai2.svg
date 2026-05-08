@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 450">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#003366"/>
+      <stop offset="50%" style="stop-color:#0066cc"/>
+      <stop offset="100%" style="stop-color:#66bbff"/>
+    </linearGradient>
+    <filter id="glow"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+  <rect width="300" height="450" fill="url(#bg)"/>
+  <path d="M50,100 Q100,60 150,100 Q200,140 250,100" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="2"/>
+  <path d="M30,130 Q100,80 150,130 Q200,180 270,130" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="1.5"/>
+  <text x="150" y="95" text-anchor="middle" font-size="40">🌊</text>
+  <text x="150" y="220" text-anchor="middle" font-family="sans-serif" font-size="14" fill="rgba(255,255,255,0.7)" letter-spacing="6">动画 / 奇幻</text>
+  <text x="150" y="260" text-anchor="middle" font-family="sans-serif" font-size="32" font-weight="bold" fill="white" filter="url(#glow)">深海2</text>
+  <text x="150" y="290" text-anchor="middle" font-family="sans-serif" font-size="12" fill="rgba(255,255,255,0.6)">2026-03-08 上映</text>
+  <rect x="60" y="320" width="180" height="2" fill="rgba(255,255,255,0.2)"/>
+  <text x="150" y="345" text-anchor="middle" font-family="sans-serif" font-size="10" fill="rgba(255,255,255,0.5)">导演：田晓鹏</text>
+  <text x="150" y="365" text-anchor="middle" font-family="sans-serif" font-size="10" fill="rgba(255,255,255,0.5)">主演：王亭文 / 苏鑫</text>
+  <rect x="80" y="385" width="140" height="30" rx="15" fill="rgba(255,255,255,0.15)"/>
+  <text x="150" y="405" text-anchor="middle" font-family="sans-serif" font-size="18" font-weight="bold" fill="#ffd700">★ 8.8</text>
+</svg>
