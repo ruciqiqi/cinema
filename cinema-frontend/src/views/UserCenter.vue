@@ -1,12 +1,13 @@
 <script setup>
 import { ref, onMounted, inject } from 'vue'
 import { useAuthStore } from '../stores/auth'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import api from '../api'
 import MemberCard from '../components/MemberCard.vue'
 
 const auth = useAuthStore()
 const router = useRouter()
+const route = useRoute()
 const toast = inject('toast')
 const activeTab = ref('info')
 const profile = ref(null)
@@ -18,6 +19,11 @@ const loading = ref(false)
 onMounted(async () => {
   if (!auth.isLoggedIn) { router.push('/'); return }
   await Promise.all([loadProfile(), loadPoints()])
+  const tab = route.query.tab
+  if (tab && tabs.includes(tab)) {
+    activeTab.value = tab
+    switchTab(tab)
+  }
 })
 
 const tabs = ['info', 'member', 'points', 'coupons', 'reviews', 'security']

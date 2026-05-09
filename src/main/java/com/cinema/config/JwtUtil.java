@@ -1,6 +1,7 @@
 package com.cinema.config;
 
 import io.jsonwebtoken.*;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import java.util.Date;
 import java.util.HashMap;
@@ -8,7 +9,9 @@ import java.util.Map;
 
 @Component
 public class JwtUtil {
-    private final String SECRET = "cinema_booking_secret_key_2026";
+    @Value("${app.jwt-secret}")
+    private String SECRET;
+
     private final long EXPIRATION = 86400000L; // 24 hours
 
     public String generateToken(Long userId, String username, String role) {

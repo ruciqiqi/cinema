@@ -292,7 +292,7 @@ public class DataInitializer implements CommandLineRunner {
             if (u != null) {
                 String[][] items = {
                     {"系统通知", "欢迎登录后台管理系统", "/admin"},
-                    {"安全提醒", "请定期修改管理密码，确保系统安全", "/user/center"},
+                    {"安全提醒", "请定期修改管理密码，确保系统安全", "/user/center?tab=security"},
                 };
                 for (String[] item : items) {
                     Notification n = new Notification();

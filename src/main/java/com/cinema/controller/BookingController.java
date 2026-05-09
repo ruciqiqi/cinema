@@ -35,22 +35,13 @@ public class BookingController {
         String snacksJson = (String) body.get("snacksJson");
 
         if (userName == null || userName.trim().isEmpty()) {
-            Map<String, Object> err = new HashMap<>();
-            err.put("success", false);
-            err.put("message", "请输入姓名");
-            return err;
+            err.put("success", false); err.put("message", "请输入姓名"); return err;
         }
         if (userPhone == null || userPhone.trim().isEmpty()) {
-            Map<String, Object> err = new HashMap<>();
-            err.put("success", false);
-            err.put("message", "请输入手机号");
-            return err;
+            err.put("success", false); err.put("message", "请输入手机号"); return err;
         }
         if (seatIds.isEmpty()) {
-            Map<String, Object> err = new HashMap<>();
-            err.put("success", false);
-            err.put("message", "请选择座位");
-            return err;
+            err.put("success", false); err.put("message", "请选择座位"); return err;
         }
 
         // Get userId from JWT if logged in

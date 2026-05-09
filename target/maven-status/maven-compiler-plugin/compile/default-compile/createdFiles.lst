@@ -5,6 +5,8 @@ com\cinema\controller\CouponController.class
 com\cinema\service\SeatService.class
 com\cinema\controller\CinemaController.class
 com\cinema\config\DataInitializer.class
+com\cinema\controller\NotificationController.class
+com\cinema\controller\BookingController.class
 com\cinema\service\ReviewService.class
 com\cinema\entity\BookingSeat.class
 com\cinema\repository\UserCouponRepository.class
@@ -24,6 +26,7 @@ com\cinema\config\JwtUtil.class
 com\cinema\repository\CouponRepository.class
 com\cinema\controller\AuthController.class
 com\cinema\entity\RefundRule.class
+com\cinema\controller\MovieController.class
 com\cinema\entity\Notification.class
 com\cinema\repository\CinemaRepository.class
 com\cinema\controller\ShowtimeController.class
@@ -40,8 +43,10 @@ com\cinema\entity\Seat.class
 com\cinema\entity\Showtime.class
 com\cinema\repository\BookingRepository.class
 com\cinema\controller\ReviewController.class
+com\cinema\service\AnnouncementService.class
 com\cinema\repository\SeatRepository.class
 com\cinema\repository\UserRepository.class
+com\cinema\controller\AnnouncementController.class
 com\cinema\entity\Hall.class
 com\cinema\entity\Movie.class
 com\cinema\repository\BookingSeatRepository.class

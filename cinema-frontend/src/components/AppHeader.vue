@@ -36,49 +36,46 @@ function closeAuth() { showAuth.value = false }
 const showNotif = ref(false)
 const notifications = ref([])
 const unread = ref(0)
+const notifLoaded = ref(false)
 
 async function loadNotifications() {
-  if (!auth.isLoggedIn) { notifications.value = []; unread.value = 0; return }
+  if (!auth.isLoggedIn) { notifications.value = []; unread.value = 0; notifLoaded.value = false; return }
   try {
     const res = await fetch('/api/notifications', { headers: { Authorization: 'Bearer ' + auth.token } })
     const data = await res.json()
     if (data.success) {
       notifications.value = data.data.map(n => ({
-        id: n.id, title: n.title, text: n.content,
-        time: n.createdAt, action: 'navigate', target: n.actionUrl || '/my/orders'
+        id: n.id, title: n.title, text: n.content, isRead: n.isRead,
+        time: n.createdAt, action: 'navigate', target: (n.actionUrl && n.actionUrl !== '/user/center') ? n.actionUrl : '/user/center'
       }))
       unread.value = data.unreadCount || 0
+      notifLoaded.value = true
     }
   } catch (e) { /* ignore */ }
 }
 
 function toggleNotif() {
   showNotif.value = !showNotif.value
-  if (showNotif.value) loadNotifications()
+  if (showNotif.value && !notifLoaded.value) loadNotifications()
 }
 
 async function handleNotif(n) {
-  await fetch('/api/notifications/' + n.id + '/read', {
-    method: 'PUT', headers: { Authorization: 'Bearer ' + auth.token }
-  })
-  unread.value = Math.max(0, unread.value - 1)
+  if (!n.isRead) {
+    await fetch('/api/notifications/' + n.id + '/read', {
+      method: 'PUT', headers: { Authorization: 'Bearer ' + auth.token }
+    })
+    n.isRead = true
+    unread.value = Math.max(0, unread.value - 1)
+  }
   showNotif.value = false
   if (n.target) router.push(n.target)
 }
 
-async function dismissNotif(id) {
-  await fetch('/api/notifications/' + id + '/read', {
-    method: 'PUT', headers: { Authorization: 'Bearer ' + auth.token }
-  })
-  notifications.value = notifications.value.filter(n => n.id !== id)
-  unread.value = Math.max(0, unread.value - 1)
-}
-
-async function clearAllNotif() {
+async function markAllRead() {
   await fetch('/api/notifications/read-all', {
     method: 'PUT', headers: { Authorization: 'Bearer ' + auth.token }
   })
-  notifications.value = []
+  notifications.value.forEach(n => { n.isRead = true })
   unread.value = 0
 }
 
@@ -86,7 +83,7 @@ async function clearAllNotif() {
 import { watch } from 'vue'
 watch(() => auth.isLoggedIn, () => {
   if (auth.isLoggedIn) loadNotifications()
-  else { notifications.value = []; unread.value = 0 }
+  else { notifications.value = []; unread.value = 0; notifLoaded.value = false }
 })
 
 /* ------------------- user dropdown ------------------- */
@@ -130,20 +127,19 @@ onMounted(() => document.addEventListener('click', docClick))
             <div v-if="showNotif" class="notif-dropdown">
               <div class="notif-dd-title">
                 <span>消息通知</span>
-                <button v-if="notifications.length" class="notif-clear-all" @click="clearAllNotif">全部清除</button>
+                <button v-if="unread > 0" class="notif-clear-all" @click="markAllRead">一键已读</button>
               </div>
-              <div v-if="!notifications.length" class="notif-empty">暂无新消息</div>
+              <div v-if="!notifications.length" class="notif-empty">暂无消息</div>
               <div
                 v-for="n in notifications"
                 :key="n.id"
                 class="notif-dd-item"
+                :class="{ 'notif-read': n.isRead }"
                 @click="handleNotif(n)"
               >
+                <div class="notif-dot" v-if="!n.isRead"></div>
                 <div class="notif-dd-text">{{ n.text }}</div>
-                <div class="notif-dd-meta">
-                  <span class="notif-dd-time">{{ n.time }}</span>
-                  <button class="notif-dismiss" @click.stop="dismissNotif(n.id)" title="忽略">&times;</button>
-                </div>
+                <div class="notif-dd-time">{{ n.time }}</div>
               </div>
             </div>
           </Transition>
@@ -311,27 +307,28 @@ onMounted(() => document.addEventListener('click', docClick))
 .notif-clear-all:hover { color: var(--primary); background: rgba(255,107,107,.08); }
 .notif-empty { padding: 30px 18px; text-align: center; font-size: 13px; color: var(--text3); }
 .notif-dd-item {
-  padding: 12px 18px;
+  padding: 12px 18px 12px 32px;
   border-bottom: 1px solid var(--border);
   transition: background .15s;
   cursor: pointer;
+  position: relative;
 }
 .notif-dd-item:last-child { border-bottom: none; }
 .notif-dd-item:hover { background: rgba(255,107,107,.06); }
-.notif-dd-text { font-size: 13px; color: var(--text); margin-bottom: 6px; line-height: 1.4; }
-.notif-dd-meta { display: flex; justify-content: space-between; align-items: center; }
-.notif-dd-time { font-size: 11px; color: var(--text3); }
-.notif-dismiss {
-  background: none;
-  border: none;
-  font-size: 16px;
-  color: var(--text3);
-  cursor: pointer;
-  padding: 0 4px;
-  line-height: 1;
-  border-radius: 4px;
+.notif-dd-item.notif-read { opacity: .55; }
+.notif-dd-item.notif-read:hover { opacity: .75; }
+.notif-dot {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--primary);
+  box-shadow: 0 0 6px var(--primary-glow);
 }
-.notif-dismiss:hover { color: var(--danger); background: rgba(231,76,60,.1); }
+.notif-dd-text { font-size: 13px; color: var(--text); margin-bottom: 4px; line-height: 1.4; }
+.notif-dd-time { font-size: 11px; color: var(--text3); }
 
 /* theme */
 .header-theme-btn {
