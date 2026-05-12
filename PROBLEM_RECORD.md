@@ -5,6 +5,7 @@
 2. [PowerShell 命令语法问题](#2-powershell-命令语法问题前端启动)
 3. [项目结构问题](#3-项目结构问题)
 4. [Git 追踪 target 目录问题](#4-git-追踪-target-目录问题)
+5. [根目录 node_modules 问题](#5-根目录-node_modules-问题)
 
 ---
 
@@ -119,7 +120,7 @@ npm run dev
 删除旧的 `frontend/` 目录，统一使用 `cinema-frontend/`
 
 #### 修复状态
-⏳ **待修复**
+✅ **已修复**
 
 ---
 
@@ -136,7 +137,7 @@ npm run dev
 删除根目录的 `package.json` 和 `package-lock.json`
 
 #### 修复状态
-⏳ **待修复**
+✅ **已修复**
 
 ---
 
@@ -166,7 +167,7 @@ npm run dev
 ```
 
 #### 修复状态
-⏳ **package.json 已更新，依赖待安装**
+✅ **已修复**
 
 ---
 
@@ -182,7 +183,7 @@ npm run dev
 确保 `.env` 不被提交到版本控制（.gitignore 已配置）。
 
 #### 修复状态
-⏳ **待确认**
+✅ **已确认安全**
 
 ---
 
@@ -201,15 +202,75 @@ npm run dev
 
 ---
 
+## 4. Git 追踪 target 目录问题
+
+### 问题描述
+使用 `git status` 查看状态时，发现 `target/` 目录下的所有 `.class` 文件都被 Git 追踪，显示为已修改状态。
+
+### 原因分析
+虽然 `.gitignore` 文件中已配置 `target/`，但这些文件**之前已被错误提交**到 Git 仓库。`.gitignore` 只对**未被追踪**的文件生效，对已追踪的文件无效。
+
+### 影响
+- 编译产物（`.class` 文件）不应该被版本控制
+- 增加仓库体积
+- 造成不必要的变更记录
+
+### 解决方法
+```bash
+# 从 Git 缓存中移除 target 目录的追踪（保留本地文件）
+git rm -r --cached target/
+
+# 提交修复
+git add .
+git commit -m "Fix: Remove target/ from git tracking"
+```
+
+### 验证方法
+执行 `git status` 后，`target/` 目录不应再显示任何变更。
+
+### 修复状态
+✅ **已修复**
+
+---
+
+## 5. 根目录 node_modules 问题
+
+### 问题描述
+项目根目录下存在 `node_modules/` 目录，与 `cinema-frontend/node_modules/` 重复。
+
+### 原因分析
+之前根目录存在 `package.json`（已删除），当时运行 `npm install` 安装了依赖到根目录。后来虽然删除了根目录的 `package.json`，但 `node_modules/` 目录被遗留下来。
+
+### 影响
+- 浪费磁盘空间（两个相同的依赖目录）
+- 容易造成混淆
+
+### 解决方法
+```bash
+# 删除根目录的 node_modules
+rm -rf node_modules/
+```
+
+### 正确的 node_modules 位置
+- ✅ `cinema-frontend/node_modules/` - 前端项目依赖目录
+- ❌ `node_modules/` (根目录) - 应删除
+
+### 修复状态
+✅ **已修复**
+
+---
+
 ## 项目结构问题汇总
 
 | 序号 | 问题类型 | 位置 | 严重程度 | 修复状态 |
 |------|---------|------|---------|---------|
-| 1 | 结构重复 | `frontend/` 目录 | 🔴 高 | ⏳ 待修复 |
-| 2 | 配置错误 | 根目录 `package.json` | 🟡 中 | ⏳ 待修复 |
-| 3 | 依赖缺失 | `cinema-frontend/package.json` | 🔴 高 | ⏳ package.json 更新 |
-| 4 | 安全风险 | `.env` | 🟡 中 | ⏳ 待确认 |
+| 1 | 结构重复 | `frontend/` 目录 | 🔴 高 | ✅ 已修复 |
+| 2 | 配置错误 | 根目录 `package.json` | 🟡 中 | ✅ 已修复 |
+| 3 | 依赖缺失 | `cinema-frontend/package.json` | 🔴 高 | ✅ 已修复 |
+| 4 | 安全风险 | `.env` | 🟡 中 | ✅ 已确认安全 |
 | 5 | 测试缺失 | 全局 | 🟢 低 | 📝 待处理 |
+| 6 | Git 追踪 target | `target/` 目录 | 🟡 中 | ✅ 已修复 |
+| 7 | 根目录 node_modules | `node_modules/` | 🟡 中 | ✅ 已修复 |
 
 ---
 
@@ -219,22 +280,30 @@ npm run dev
 - [x] 后端服务正常运行 (http://localhost:8080)
 - [x] 前端服务正常运行 (http://localhost:5173)
 
-### 阶段二：修复问题 3（依赖缺失）
+### 阶段二：修复问题 3（依赖缺失）✅
 - [x] 更新 cinema-frontend/package.json 添加依赖
-- [ ] 安装依赖并验证前端正常运行
+- [x] 验证前端正常运行
 
-### 阶段三：修复问题 2（根目录 package.json）
-- [ ] 删除根目录的 package.json 和 package-lock.json
-- [ ] 验证项目仍可正常运行
+### 阶段三：修复问题 2（根目录 package.json）✅
+- [x] 删除根目录的 package.json 和 package-lock.json
+- [x] 验证项目仍可正常运行
 
-### 阶段四：修复问题 1（重复前端目录）
-- [ ] 删除 frontend/ 目录
-- [ ] 验证项目仍可正常运行
+### 阶段四：修复问题 1（重复前端目录）✅
+- [x] 删除 frontend/ 目录
+- [x] 验证项目仍可正常运行
+
+### 阶段五：修复 Git 追踪 target 目录 ✅
+- [x] 执行 git rm -r --cached target/
+- [x] 提交修复
+
+### 阶段六：修复根目录 node_modules ✅
+- [x] 删除根目录的 node_modules/
+- [x] 提交修复
 
 ---
 
 ## 文档版本
 - 创建日期：2026-05-12
-- 最后更新：2026-05-12
-- 版本：v1.2
+- 最后更新：2026-05-13
+- 版本：v1.4
 - 作者：系统管理员
