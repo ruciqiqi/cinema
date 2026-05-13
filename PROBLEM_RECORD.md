@@ -268,7 +268,7 @@ rm -rf node_modules/
 | 2 | 配置错误 | 根目录 `package.json` | 🟡 中 | ✅ 已修复 |
 | 3 | 依赖缺失 | `cinema-frontend/package.json` | 🔴 高 | ✅ 已修复 |
 | 4 | 安全风险 | `.env` | 🟡 中 | ✅ 已确认安全 |
-| 5 | 测试缺失 | 全局 | 🟢 低 | 📝 待处理 |
+| 5 | 测试缺失 | 全局 | 🟢 低 | ✅ 已修复 |
 | 6 | Git 追踪 target | `target/` 目录 | 🟡 中 | ✅ 已修复 |
 | 7 | 根目录 node_modules | `node_modules/` | 🟡 中 | ✅ 已修复 |
 
@@ -302,8 +302,89 @@ rm -rf node_modules/
 
 ---
 
+## 5. 测试缺失问题
+
+### 问题描述
+项目缺少测试代码：
+- 后端：`src/test/java/` 目录不存在
+- 前端：无测试配置
+
+### 影响
+- 无法验证代码修改是否破坏现有功能
+- 无法确保代码质量
+- 不利于持续集成和自动化测试
+
+### 解决方法
+
+#### 后端测试配置
+**pom.xml 添加依赖：**
+```xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-test</artifactId>
+    <scope>test</scope>
+</dependency>
+```
+
+**创建测试文件：**
+- `src/test/java/com/cinema/CinemaApplicationTests.java` - 应用上下文测试
+- `src/test/java/com/cinema/service/MovieServiceTests.java` - 电影服务测试（5个用例）
+- `src/test/java/com/cinema/service/UserServiceTests.java` - 用户服务测试（6个用例）
+
+**运行命令：**
+```bash
+mvn test
+```
+
+#### 前端测试配置
+**package.json 添加依赖：**
+```json
+{
+  "scripts": {
+    "test": "vitest",
+    "test:coverage": "vitest run --coverage"
+  },
+  "devDependencies": {
+    "vitest": "^1.6.0",
+    "@vue/test-utils": "^2.4.6",
+    "jsdom": "^24.1.0"
+  }
+}
+```
+
+**创建配置文件：**
+- `vitest.config.js` - Vitest 配置
+- `src/tests/components/MovieCard.test.js` - 电影卡片组件测试（2个用例）
+- `src/tests/stores/auth.test.js` - 认证状态管理测试（4个用例）
+
+**运行命令：**
+```bash
+npm run test
+```
+
+### 测试覆盖范围
+
+| 模块 | 测试文件 | 测试用例数 |
+|------|---------|-----------|
+| 后端应用 | `CinemaApplicationTests.java` | 1 |
+| 电影服务 | `MovieServiceTests.java` | 5 |
+| 用户服务 | `UserServiceTests.java` | 6 |
+| 电影卡片组件 | `MovieCard.test.js` | 2 |
+| 认证状态管理 | `auth.test.js` | 4 |
+| **总计** | - | **18** |
+
+### 验证方法
+运行测试后确认所有测试通过：
+- 后端：`mvn test` → BUILD SUCCESS
+- 前端：`npm run test` → All tests passed
+
+### 修复状态
+✅ **已修复**
+
+---
+
 ## 文档版本
 - 创建日期：2026-05-12
 - 最后更新：2026-05-13
-- 版本：v1.4
+- 版本：v1.5
 - 作者：系统管理员
