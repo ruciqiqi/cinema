@@ -1,15 +1,20 @@
 package com.cinema.controller;
 
+import com.cinema.dto.request.AddAnnouncementRequest;
+import com.cinema.dto.request.UpdateUserRequest;
 import com.cinema.entity.*;
 import com.cinema.repository.*;
 import com.cinema.service.MovieService;
 import com.cinema.service.SnackService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import java.util.*;
 
 @RestController
 @RequestMapping("/api/admin")
+@Tag(name = "管理员管理", description = "后台管理功能接口")
 public class AdminController {
     private final MovieService movieService;
     private final SnackService snackService;
@@ -47,8 +52,8 @@ public class AdminController {
         this.cinemaRepository = cinemaRepository;
     }
 
-    // ===== Dashboard stats =====
     @GetMapping("/stats")
+    @Operation(summary = "获取统计数据", description = "获取系统统计信息")
     public Map<String, Object> stats() {
         Map<String, Object> result = new HashMap<>();
         result.put("movieCount", movieRepository.count());
@@ -56,7 +61,6 @@ public class AdminController {
         result.put("bookingCount", bookingRepository.count());
         result.put("hallCount", hallRepository.count());
         result.put("userCount", userRepository.count());
-        // Revenue
         double revenue = 0;
         for (Booking b : bookingRepository.findAll()) {
             if ("confirmed".equals(b.getStatus())) {
@@ -68,8 +72,8 @@ public class AdminController {
         return result;
     }
 
-    // ===== Movies =====
     @GetMapping("/movies")
+    @Operation(summary = "获取电影列表", description = "获取所有电影")
     public Map<String, Object> listMovies() {
         Map<String, Object> result = new HashMap<>();
         result.put("success", true);
@@ -78,6 +82,7 @@ public class AdminController {
     }
 
     @PostMapping("/movies")
+    @Operation(summary = "添加电影", description = "添加新电影")
     public Map<String, Object> addMovie(@RequestBody Movie movie) {
         Map<String, Object> result = new HashMap<>();
         movie.setId(null);
@@ -89,6 +94,7 @@ public class AdminController {
     }
 
     @PutMapping("/movies/{id}")
+    @Operation(summary = "更新电影", description = "更新电影信息")
     public Map<String, Object> updateMovie(@PathVariable Long id, @RequestBody Movie movie) {
         Map<String, Object> result = new HashMap<>();
         Movie exist = movieRepository.findById(id).orElse(null);
@@ -114,6 +120,7 @@ public class AdminController {
     }
 
     @DeleteMapping("/movies/{id}")
+    @Operation(summary = "删除电影", description = "删除指定电影")
     public Map<String, Object> deleteMovie(@PathVariable Long id) {
         Map<String, Object> result = new HashMap<>();
         movieRepository.deleteById(id);
@@ -121,8 +128,8 @@ public class AdminController {
         return result;
     }
 
-    // ===== Showtimes =====
     @GetMapping("/showtimes")
+    @Operation(summary = "获取场次列表", description = "获取所有场次")
     public Map<String, Object> listShowtimes() {
         Map<String, Object> result = new HashMap<>();
         result.put("success", true);
@@ -131,10 +138,10 @@ public class AdminController {
     }
 
     @PostMapping("/showtimes")
+    @Operation(summary = "添加场次", description = "添加新场次")
     public Map<String, Object> addShowtime(@RequestBody Showtime showtime) {
         Map<String, Object> result = new HashMap<>();
         showtime.setId(null);
-        // Set hall name from hall
         Hall hall = hallRepository.findById(showtime.getHallId()).orElse(null);
         if (hall != null) showtime.setHallName(hall.getName());
         showtimeRepository.save(showtime);
@@ -144,6 +151,7 @@ public class AdminController {
     }
 
     @DeleteMapping("/showtimes/{id}")
+    @Operation(summary = "删除场次", description = "删除指定场次")
     public Map<String, Object> deleteShowtime(@PathVariable Long id) {
         Map<String, Object> result = new HashMap<>();
         showtimeRepository.deleteById(id);
@@ -151,8 +159,8 @@ public class AdminController {
         return result;
     }
 
-    // ===== Bookings =====
     @GetMapping("/bookings")
+    @Operation(summary = "获取订单列表", description = "获取所有订单")
     public Map<String, Object> listBookings() {
         Map<String, Object> result = new HashMap<>();
         List<Map<String, Object>> list = new ArrayList<>();
@@ -181,6 +189,7 @@ public class AdminController {
     }
 
     @PutMapping("/bookings/{id}/cancel")
+    @Operation(summary = "取消订单", description = "管理员取消订单")
     public Map<String, Object> cancelBooking(@PathVariable Long id) {
         Map<String, Object> result = new HashMap<>();
         Booking b = bookingRepository.findById(id).orElse(null);
@@ -195,8 +204,8 @@ public class AdminController {
         return result;
     }
 
-    // ===== Snacks =====
     @GetMapping("/snacks")
+    @Operation(summary = "获取零食列表", description = "获取所有零食")
     public Map<String, Object> listSnacks() {
         Map<String, Object> result = new HashMap<>();
         result.put("success", true);
@@ -205,6 +214,7 @@ public class AdminController {
     }
 
     @PostMapping("/snacks")
+    @Operation(summary = "添加零食", description = "添加新零食")
     public Map<String, Object> addSnack(@RequestBody Snack snack) {
         Map<String, Object> result = new HashMap<>();
         snack.setId(null);
@@ -214,6 +224,7 @@ public class AdminController {
     }
 
     @PutMapping("/snacks/{id}")
+    @Operation(summary = "更新零食", description = "更新零食信息")
     public Map<String, Object> updateSnack(@PathVariable Long id, @RequestBody Snack snack) {
         Map<String, Object> result = new HashMap<>();
         Snack exist = snackService.getById(id);
@@ -233,6 +244,7 @@ public class AdminController {
     }
 
     @DeleteMapping("/snacks/{id}")
+    @Operation(summary = "删除零食", description = "删除指定零食")
     public Map<String, Object> deleteSnack(@PathVariable Long id) {
         Map<String, Object> result = new HashMap<>();
         snackService.delete(id);
@@ -240,8 +252,8 @@ public class AdminController {
         return result;
     }
 
-    // ===== Halls =====
     @GetMapping("/halls")
+    @Operation(summary = "获取影厅列表", description = "获取所有影厅")
     public Map<String, Object> listHalls() {
         Map<String, Object> result = new HashMap<>();
         result.put("success", true);
@@ -249,8 +261,8 @@ public class AdminController {
         return result;
     }
 
-    // ===== Users =====
     @GetMapping("/users")
+    @Operation(summary = "获取用户列表", description = "获取所有用户")
     public Map<String, Object> listUsers() {
         Map<String, Object> result = new HashMap<>();
         result.put("success", true);
@@ -259,22 +271,23 @@ public class AdminController {
     }
 
     @PutMapping("/users/{id}")
-    public Map<String, Object> updateUser(@PathVariable Long id, @RequestBody Map<String, Object> body) {
+    @Operation(summary = "更新用户", description = "管理员更新用户信息")
+    public Map<String, Object> updateUser(@PathVariable Long id, @RequestBody UpdateUserRequest request) {
         Map<String, Object> result = new HashMap<>();
         User user = userRepository.findById(id).orElse(null);
         if (user == null) {
             result.put("success", false); result.put("message", "用户不存在"); return result;
         }
-        if (body.containsKey("role")) user.setRole((String) body.get("role"));
-        if (body.containsKey("memberLevel")) user.setMemberLevel(Integer.valueOf(body.get("memberLevel").toString()));
-        if (body.containsKey("points")) user.setPoints(Integer.valueOf(body.get("points").toString()));
+        if (request.getRole() != null) user.setRole(request.getRole());
+        if (request.getMemberLevel() != null) user.setMemberLevel(request.getMemberLevel());
+        if (request.getPoints() != null) user.setPoints(request.getPoints());
         userRepository.save(user);
         result.put("success", true);
         return result;
     }
 
-    // ===== Coupons =====
     @GetMapping("/coupons")
+    @Operation(summary = "获取优惠券列表", description = "获取所有优惠券")
     public Map<String, Object> listCoupons() {
         Map<String, Object> result = new HashMap<>();
         result.put("success", true);
@@ -283,6 +296,7 @@ public class AdminController {
     }
 
     @PostMapping("/coupons")
+    @Operation(summary = "添加优惠券", description = "添加新优惠券")
     public Map<String, Object> addCoupon(@RequestBody Coupon coupon) {
         Map<String, Object> result = new HashMap<>();
         coupon.setId(null);
@@ -293,6 +307,7 @@ public class AdminController {
     }
 
     @DeleteMapping("/coupons/{id}")
+    @Operation(summary = "删除优惠券", description = "删除指定优惠券")
     public Map<String, Object> deleteCoupon(@PathVariable Long id) {
         Map<String, Object> result = new HashMap<>();
         couponRepository.deleteById(id);
@@ -300,8 +315,8 @@ public class AdminController {
         return result;
     }
 
-    // ===== Announcements =====
     @GetMapping("/announcements")
+    @Operation(summary = "获取公告列表", description = "获取所有公告")
     public Map<String, Object> listAnnouncements() {
         Map<String, Object> result = new HashMap<>();
         result.put("success", true);
@@ -310,11 +325,12 @@ public class AdminController {
     }
 
     @PostMapping("/announcements")
-    public Map<String, Object> addAnnouncement(@RequestBody Map<String, Object> body) {
+    @Operation(summary = "添加公告", description = "添加新公告")
+    public Map<String, Object> addAnnouncement(@RequestBody AddAnnouncementRequest request) {
         Map<String, Object> result = new HashMap<>();
         Announcement a = new Announcement();
-        a.setTitle((String) body.get("title"));
-        a.setContent((String) body.get("content"));
+        a.setTitle(request.getTitle());
+        a.setContent(request.getContent());
         a.setCreatedAt(java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
         a.setStatus("published");
         announcementRepository.save(a);
@@ -323,6 +339,7 @@ public class AdminController {
     }
 
     @DeleteMapping("/announcements/{id}")
+    @Operation(summary = "删除公告", description = "删除指定公告")
     public Map<String, Object> deleteAnnouncement(@PathVariable Long id) {
         Map<String, Object> result = new HashMap<>();
         announcementRepository.deleteById(id);
@@ -330,8 +347,8 @@ public class AdminController {
         return result;
     }
 
-    // ===== Cinemas =====
     @GetMapping("/cinemas")
+    @Operation(summary = "获取影院列表", description = "获取所有影院")
     public Map<String, Object> listCinemas() {
         Map<String, Object> result = new HashMap<>();
         result.put("success", true);
@@ -340,6 +357,7 @@ public class AdminController {
     }
 
     @PostMapping("/cinemas")
+    @Operation(summary = "添加影院", description = "添加新影院")
     public Map<String, Object> addCinema(@RequestBody Cinema cinema) {
         Map<String, Object> result = new HashMap<>();
         cinema.setId(null);
@@ -348,11 +366,10 @@ public class AdminController {
         return result;
     }
 
-    // ===== Enhanced Stats =====
     @GetMapping("/stats/revenue")
+    @Operation(summary = "收入统计", description = "获取收入统计数据")
     public Map<String, Object> revenueStats() {
         Map<String, Object> result = new HashMap<>();
-        // Revenue by movie
         Map<String, Double> byMovie = new LinkedHashMap<>();
         Map<String, Double> byDate = new LinkedHashMap<>();
         for (Booking b : bookingRepository.findAll()) {
@@ -372,6 +389,7 @@ public class AdminController {
     }
 
     @GetMapping("/stats/overview")
+    @Operation(summary = "完整统计", description = "获取完整统计信息")
     public Map<String, Object> fullStats() {
         Map<String, Object> result = new HashMap<>();
         result.put("movieCount", movieRepository.count());
@@ -381,7 +399,6 @@ public class AdminController {
         result.put("userCount", userRepository.count());
         result.put("cinemaCount", cinemaRepository.count());
 
-        // Revenue
         double revenue = 0;
         int confirmedCount = 0;
         for (Booking b : bookingRepository.findAll()) {
@@ -393,7 +410,6 @@ public class AdminController {
         result.put("revenue", Math.round(revenue * 100.0) / 100.0);
         result.put("confirmedBookings", confirmedCount);
 
-        // Genre distribution
         Map<String, Integer> genreCount = new LinkedHashMap<>();
         for (Movie m : movieRepository.findAll()) {
             if (m.getGenre() != null) {
@@ -405,7 +421,6 @@ public class AdminController {
         }
         result.put("genreDistribution", genreCount);
 
-        // Top movies by booking count
         Map<String, Integer> movieBookingCount = new LinkedHashMap<>();
         for (Booking b : bookingRepository.findAll()) {
             if ("confirmed".equals(b.getStatus()) && b.getMovieTitle() != null) {
