@@ -12,6 +12,7 @@ export const useCartStore = defineStore('cart', () => {
   const appliedCoupon = ref(null)
   const paymentMethod = ref('wechat')
   const orderTotal = ref(0)
+  const bookingCode = ref('')
 
   const seatCount = computed(() => selectedSeats.value.length)
 
@@ -44,11 +45,12 @@ export const useCartStore = defineStore('cart', () => {
     snackCart.value = {}
     appliedCoupon.value = null
     paymentMethod.value = 'wechat'
+    bookingCode.value = ''
   }
 
   return {
     currentMovieId, currentShowtimeId, currentHallId, currentShowtime,
-    seatMap, selectedSeats, snackCart, appliedCoupon, paymentMethod, orderTotal,
+    seatMap, selectedSeats, snackCart, appliedCoupon, paymentMethod, orderTotal, bookingCode,
     seatCount, calcSeatTotal, calcSnackTotal, calcFinalTotal, reset
   }
 })

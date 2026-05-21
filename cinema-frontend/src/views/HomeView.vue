@@ -1,10 +1,11 @@
 <script setup>
-import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, onMounted, watch } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import api from '../api'
 import MovieCard from '../components/MovieCard.vue'
 
 const router = useRouter()
+const route = useRoute()
 
 const movies = ref([])
 const comingMovies = ref([])
@@ -44,6 +45,12 @@ onMounted(async () => {
     console.error(e)
   }
 })
+
+// Watch for search keyword from AppHeader
+watch(() => route.query.search, (newVal) => {
+  searchKeyword.value = newVal || ''
+  filterMovies()
+}, { immediate: true })
 
 function startAutoSlide() {
   autoSlideInterval = setInterval(() => {

@@ -15,6 +15,18 @@ function navigateOrAuth(path) {
   }
 }
 
+/* ------------------- search ------------------- */
+const searchKeyword = ref('')
+
+function handleSearch() {
+  const keyword = searchKeyword.value.trim()
+  if (keyword) {
+    router.push({ path: '/', query: { search: keyword } })
+  } else {
+    router.push('/')
+  }
+}
+
 /* ------------------- auth modal ------------------- */
 const showAuth = ref(false)
 function openAuth() { showAuth.value = true }
@@ -107,11 +119,11 @@ onMounted(() => document.addEventListener('click', docClick))
         <RouterLink to="/order/lookup" class="nav-item">订单查询</RouterLink>
       </nav>
 
-      <!-- search (placeholder) -->
-      <div class="header-search">
-        <input type="text" placeholder="找电影/影人/影院" />
-        <span class="search-icon">🔍</span>
-      </div>
+      <!-- search -->
+      <form class="header-search" @submit.prevent="handleSearch">
+        <input type="text" v-model="searchKeyword" placeholder="找电影/影人/影院" />
+        <span class="search-icon" @click="handleSearch">🔍</span>
+      </form>
 
       <!-- right -->
       <div class="header-right">

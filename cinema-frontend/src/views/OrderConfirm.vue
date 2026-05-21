@@ -67,6 +67,7 @@ async function submitOrder() {
       paymentMethod: cart.paymentMethod
     })
     if (payRes.data.success) {
+      cart.bookingCode = bookingRes.data.bookingCode
       lastOrder.value = {
         ...bookingRes.data,
         actualPaid: payRes.data.actualPaid,
