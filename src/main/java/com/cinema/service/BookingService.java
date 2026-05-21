@@ -19,13 +19,15 @@ public class BookingService {
     private final RefundRuleRepository refundRuleRepository;
     private final UserRepository userRepository;
     private final NotificationRepository notificationRepository;
+    private final SeatService seatService;
 
     public BookingService(BookingRepository bookingRepository, BookingSeatRepository bookingSeatRepository,
-                          SeatRepository seatRepository, ShowtimeRepository showtimeRepository,
-                          MovieRepository movieRepository, SnackRepository snackRepository,
-                          RefundRuleRepository refundRuleRepository,
-                          UserRepository userRepository,
-                          NotificationRepository notificationRepository) {
+                       SeatRepository seatRepository, ShowtimeRepository showtimeRepository,
+                       MovieRepository movieRepository, SnackRepository snackRepository,
+                       RefundRuleRepository refundRuleRepository,
+                       UserRepository userRepository,
+                       NotificationRepository notificationRepository,
+                       SeatService seatService) {
         this.bookingRepository = bookingRepository;
         this.bookingSeatRepository = bookingSeatRepository;
         this.seatRepository = seatRepository;
@@ -35,6 +37,7 @@ public class BookingService {
         this.refundRuleRepository = refundRuleRepository;
         this.userRepository = userRepository;
         this.notificationRepository = notificationRepository;
+        this.seatService = seatService;
     }
 
     @Transactional
@@ -51,7 +54,6 @@ public class BookingService {
         }
 
         // Check if seats are already booked
-        SeatService seatService = new SeatService(seatRepository, bookingSeatRepository, bookingRepository);
         Set<Long> bookedSeats = seatService.getBookedSeatIds(showtimeId);
         for (Long seatId : seatIds) {
             if (bookedSeats.contains(seatId)) {
@@ -164,17 +166,10 @@ public class BookingService {
 
     public List<Map<String, Object>> getBookingsByUserId(Long userId) {
         List<Map<String, Object>> list = new ArrayList<>();
-        List<Booking> bookings = bookingRepository.findAll();
+        List<Booking> bookings = bookingRepository.findByUserIdOrderByCreatedAtDesc(userId);
         for (Booking b : bookings) {
-            if (b.getUserId() != null && b.getUserId().equals(userId)) {
-                list.add(buildBookingMap(b));
-            }
+            list.add(buildBookingMap(b));
         }
-        list.sort((a, b) -> {
-            String ta = (String) a.getOrDefault("createdAt", "");
-            String tb = (String) b.getOrDefault("createdAt", "");
-            return tb.compareTo(ta);
-        });
         return list;
     }
 
@@ -377,9 +372,7 @@ public class BookingService {
 
     private Set<Long> getBookedSeatIdsStatic(Long showtimeId) {
         Set<Long> booked = new HashSet<>();
-        List<Booking> bookings = bookingRepository.findAll().stream()
-                .filter(b -> b.getShowtimeId().equals(showtimeId) && "confirmed".equals(b.getStatus()))
-                .collect(java.util.stream.Collectors.toList());
+        List<Booking> bookings = bookingRepository.findConfirmedByShowtimeId(showtimeId);
         for (Booking b : bookings) {
             List<BookingSeat> bsList = bookingSeatRepository.findByBookingId(b.getId());
             for (BookingSeat bs : bsList) booked.add(bs.getSeatId());

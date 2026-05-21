@@ -10,8 +10,10 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.util.Map;
 
 @RestController
@@ -41,7 +43,7 @@ public class AuthController {
                                     value = "{\"success\":false,\"message\":\"用户名已存在\",\"data\":null}"
                             )))
     })
-    public Map<String, Object> register(@RequestBody RegisterRequest request) {
+    public Map<String, Object> register(@Valid @RequestBody RegisterRequest request) {
         return userService.register(request.getUsername(), request.getPassword(), request.getPhone());
     }
 
@@ -61,7 +63,7 @@ public class AuthController {
                                     value = "{\"success\":false,\"message\":\"用户名或密码错误\",\"data\":null}"
                             )))
     })
-    public Map<String, Object> login(@RequestBody LoginRequest request) {
+    public Map<String, Object> login(@Valid @RequestBody LoginRequest request) {
         return userService.login(request.getUsername(), request.getPassword());
     }
 }

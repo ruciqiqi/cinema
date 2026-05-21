@@ -382,27 +382,146 @@ async function addCinema() {
 </template>
 
 <style scoped>
-.admin-container { display: flex; gap: 20px; min-height: 500px; }
-.admin-sidebar { width: 200px; background: var(--surface); border-radius: var(--radius); padding: 20px; border: 1px solid var(--border); flex-shrink: 0; }
-.admin-sidebar h3 { color: var(--primary); margin-bottom: 14px; font-size: 16px; }
-.admin-nav { display: block; padding: 8px 14px; border-radius: 6px; color: var(--text2); text-decoration: none; font-size: 14px; margin-bottom: 4px; transition: all .2s; }
-.admin-nav:hover, .admin-nav.active { background: var(--surface2); color: var(--primary); }
-.admin-content { flex: 1; background: var(--surface); border-radius: var(--radius); padding: 20px; border: 1px solid var(--border); overflow-x: auto; }
-.admin-content h3 { color: var(--primary); margin-bottom: 14px; }
-.admin-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-.admin-table th { background: var(--surface2); padding: 10px 8px; text-align: left; color: var(--text); border-bottom: 2px solid var(--border); }
-.admin-table td { padding: 8px; border-bottom: 1px solid var(--surface2); color: var(--text2); }
-.admin-table tr:hover td { background: rgba(255,255,255,.03); }
-.admin-form { display: grid; gap: 10px; margin-bottom: 18px; grid-template-columns: 1fr 1fr; }
-.admin-form input, .admin-form select, .admin-form textarea { padding: 8px 12px; }
-.admin-form textarea { grid-column: 1 / -1; resize: vertical; }
-.stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px; margin-bottom: 20px; }
-.stat-card { background: var(--surface2); border-radius: 8px; padding: 18px; text-align: center; transition: transform .2s; }
-.stat-card:hover { transform: translateY(-2px); }
-.stat-card .num { font-size: 28px; font-weight: 700; color: var(--primary); }
-.stat-card .label { font-size: 13px; color: var(--text3); margin-top: 4px; }
-.chart-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-.chart-box { background: var(--surface2); border-radius: 8px; padding: 16px; }
-.chart-box h4 { color: var(--text2); margin-bottom: 10px; font-size: 14px; }
+.admin-container { 
+  display: flex; 
+  gap: 20px; 
+  min-height: 500px;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px 20px;
+}
+.admin-sidebar { 
+  width: 200px; 
+  background: #fff; 
+  border-radius: 12px; 
+  padding: 20px; 
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  flex-shrink: 0; 
+}
+.admin-sidebar h3 { 
+  color: var(--primary); 
+  margin-bottom: 14px; 
+  font-size: 16px;
+  font-weight: 600;
+}
+.admin-nav { 
+  display: block; 
+  padding: 10px 14px; 
+  border-radius: 8px; 
+  color: var(--text2); 
+  text-decoration: none; 
+  font-size: 14px; 
+  margin-bottom: 4px; 
+  transition: all 0.2s; 
+}
+.admin-nav:hover, .admin-nav.active { 
+  background: rgba(229, 72, 71, 0.08); 
+  color: var(--primary);
+  font-weight: 500;
+}
+.admin-content { 
+  flex: 1; 
+  background: #fff; 
+  border-radius: 12px; 
+  padding: 24px; 
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  overflow-x: auto; 
+}
+.admin-content h3 { 
+  color: var(--text); 
+  margin-bottom: 20px;
+  font-size: 18px;
+  font-weight: 600;
+  border-bottom: 2px solid var(--primary);
+  padding-bottom: 12px;
+}
+.admin-table { 
+  width: 100%; 
+  border-collapse: collapse; 
+  font-size: 13px; 
+  margin-top: 16px;
+}
+.admin-table th { 
+  background: #fafafa; 
+  padding: 12px 10px; 
+  text-align: left; 
+  color: var(--text); 
+  border-bottom: 2px solid var(--border);
+  font-weight: 600;
+}
+.admin-table td { 
+  padding: 10px 8px; 
+  border-bottom: 1px solid var(--border-light); 
+  color: var(--text2); 
+}
+.admin-table tr:hover td { 
+  background: #fafafa; 
+}
+.admin-form { 
+  display: grid; 
+  gap: 12px; 
+  margin-bottom: 20px; 
+  grid-template-columns: 1fr 1fr;
+  background: #fafafa;
+  padding: 20px;
+  border-radius: 8px;
+}
+.admin-form input, .admin-form select, .admin-form textarea { 
+  padding: 10px 14px; 
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+.admin-form textarea { 
+  grid-column: 1 / -1; 
+  resize: vertical; 
+}
+.stats-grid { 
+  display: grid; 
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); 
+  gap: 16px; 
+  margin-bottom: 24px; 
+}
+.stat-card { 
+  background: #fafafa; 
+  border: 1px solid var(--border-light);
+  border-radius: 10px; 
+  padding: 20px; 
+  text-align: center;
+  transition: all 0.2s;
+}
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+}
+.stat-card .num { 
+  font-size: 28px; 
+  font-weight: 700; 
+  color: var(--primary); 
+  margin-bottom: 8px;
+}
+.stat-card .label { 
+  font-size: 13px; 
+  color: var(--text3);
+}
+.chart-row { 
+  display: grid; 
+  grid-template-columns: 1fr 1fr; 
+  gap: 20px; 
+  margin-top: 20px;
+}
+.chart-box { 
+  background: #fafafa; 
+  border: 1px solid var(--border-light);
+  border-radius: 10px; 
+  padding: 16px;
+}
+.chart-box h4 { 
+  color: var(--text2); 
+  margin-bottom: 12px; 
+  font-size: 14px; 
+  font-weight: 600;
+  text-transform: uppercase; 
+  letter-spacing: 1px;
+}
 @media(max-width:900px) { .admin-container { flex-direction: column; } .admin-sidebar { width: 100%; display: flex; gap: 6px; flex-wrap: wrap; padding: 12px; } .admin-sidebar h3 { display: none; } .admin-nav { padding: 6px 12px; font-size: 12px; } .admin-form { grid-template-columns: 1fr; } .chart-row { grid-template-columns: 1fr; } }
 </style>
