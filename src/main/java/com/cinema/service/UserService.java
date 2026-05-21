@@ -3,8 +3,8 @@ package com.cinema.service;
 import com.cinema.config.JwtUtil;
 import com.cinema.entity.User;
 import com.cinema.repository.UserRepository;
+import com.cinema.util.PasswordUtil;
 import org.springframework.stereotype.Service;
-import java.security.MessageDigest;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -61,7 +61,7 @@ public class UserService {
             result.put("message", "用户名或密码错误");
             return result;
         }
-        if (!user.getPassword().equals(hashPassword(password))) {
+        if (!PasswordUtil.matches(password, user.getPassword())) {
             result.put("success", false);
             result.put("message", "用户名或密码错误");
             return result;
@@ -124,7 +124,7 @@ public class UserService {
         if (user == null) {
             result.put("success", false); result.put("message", "用户不存在"); return result;
         }
-        if (!user.getPassword().equals(hashPassword(oldPwd))) {
+        if (!PasswordUtil.matches(oldPwd, user.getPassword())) {
             result.put("success", false); result.put("message", "原密码错误"); return result;
         }
         if (newPwd == null || newPwd.length() < 6) {
@@ -191,14 +191,6 @@ public class UserService {
     }
 
     private String hashPassword(String password) {
-        try {
-            MessageDigest md = MessageDigest.getInstance("SHA-256");
-            byte[] hash = md.digest(password.getBytes("UTF-8"));
-            StringBuilder sb = new StringBuilder();
-            for (byte b : hash) sb.append(String.format("%02x", b));
-            return sb.toString();
-        } catch (Exception e) {
-            return password;
-        }
+        return PasswordUtil.encode(password);
     }
 }

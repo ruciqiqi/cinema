@@ -46,9 +46,7 @@ public class SeatService {
 
     public Set<Long> getBookedSeatIds(Long showtimeId) {
         Set<Long> booked = new HashSet<>();
-        List<Booking> bookings = bookingRepository.findAll().stream()
-                .filter(b -> b.getShowtimeId().equals(showtimeId) && "confirmed".equals(b.getStatus()))
-                .collect(Collectors.toList());
+        List<Booking> bookings = bookingRepository.findConfirmedByShowtimeId(showtimeId);
         for (Booking b : bookings) {
             List<BookingSeat> bsList = bookingSeatRepository.findByBookingId(b.getId());
             for (BookingSeat bs : bsList) {
