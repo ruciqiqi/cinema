@@ -5,44 +5,46 @@ import { useRouter } from 'vue-router'
 const props = defineProps({
   movie: {
     type: Object,
-    required: true,
-    /* expected shape:
-     *   id, title, posterBg, posterUrl, genre, rating,
-     *   duration, language, director, isHot
-     */
-  },
+    required: true
+  }
 })
 
 const router = useRouter()
 
-const cardStyle = computed(() => {
-  const bg = props.movie.posterUrl
-    ? `url(${props.movie.posterUrl}) center/cover no-repeat`
-    : `linear-gradient(135deg, ${props.movie.posterBg || '#1a1a3e'}, #0d0d20)`
-  return { background: bg }
-})
-
 function goDetail() {
-  router.push(`/movie/${props.movie.id}`)
+  router.push('/movie/' + props.movie.id)
+}
+
+const isComingSoon = computed(() => props.movie.status === 'coming')
+
+function getPosterStyle() {
+  if (props.movie.posterUrl) {
+    return `url(${props.movie.posterUrl}) center/cover no-repeat`
+  }
+  return `linear-gradient(135deg, ${props.movie.posterBg || '#e0e0e0'}, ${props.movie.posterBg || '#d0d0d0'})`
 }
 </script>
 
 <template>
   <div class="movie-card" @click="goDetail">
-    <div class="card-poster" :style="cardStyle">
-      <!-- fallback gradient handled by :style -->
-      <div class="card-tags">
-        <span v-if="movie.genre" class="card-genre">{{ movie.genre }}</span>
-        <span v-if="movie.isHot" class="card-hot">HOT</span>
-      </div>
-      <div v-if="movie.rating" class="card-rating">{{ movie.rating }}</div>
-      <div class="card-overlay">
-        <h3 class="card-title">{{ movie.title }}</h3>
-        <div class="card-meta">
-          <span v-if="movie.duration">{{ movie.duration }}分钟</span>
-          <span v-if="movie.language">{{ movie.language }}</span>
-          <span v-if="movie.director">{{ movie.director }}</span>
+    <div class="card-poster">
+      <div class="poster-image" :style="{ background: getPosterStyle() }">
+        <div v-if="movie.isHot" class="hot-badge">热映</div>
+        <div v-else-if="isComingSoon" class="coming-badge">即将上映</div>
+        <div v-if="movie.rating && parseFloat(movie.rating) > 0" class="rating-badge">
+          <span class="rating-value">{{ movie.rating }}</span>
         </div>
+      </div>
+    </div>
+    <div class="card-info">
+      <h3 class="card-title">{{ movie.title }}</h3>
+      <div class="card-attrs" v-if="movie.genre || movie.duration">
+        <span v-if="movie.genre" class="attr-item">{{ movie.genre }}</span>
+        <span v-if="movie.duration" class="attr-item">{{ movie.duration }}分钟</span>
+      </div>
+      <div class="card-action">
+        <button v-if="!isComingSoon" class="buy-btn">购票</button>
+        <button v-else class="wish-btn">想看</button>
       </div>
     </div>
   </div>
@@ -51,17 +53,15 @@ function goDetail() {
 <style scoped>
 .movie-card {
   cursor: pointer;
-  border-radius: var(--radius);
+  background: #fff;
+  border-radius: 8px;
   overflow: hidden;
-  background: var(--surface);
-  border: 1px solid transparent;
-  transition: transform .35s cubic-bezier(.21, 1.02, .73, 1), box-shadow .35s, border-color .35s;
-  box-shadow: 0 4px 20px rgba(0,0,0,.25);
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
 }
 .movie-card:hover {
-  transform: translateY(-8px) scale(1.03);
-  box-shadow: 0 20px 50px rgba(0,0,0,.5), 0 0 0 2px var(--primary-glow);
-  border-color: rgba(255,94,94,.3);
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.1);
 }
 
 .card-poster {
@@ -70,100 +70,104 @@ function goDetail() {
   padding-top: 140%;
   overflow: hidden;
 }
-.card-poster::after {
-  content: '';
+.poster-image {
   position: absolute;
-  inset: 0;
-  background: linear-gradient(transparent 35%, rgba(0,0,0,.6) 70%, rgba(0,0,0,.9) 100%);
-  z-index: 1;
-  pointer-events: none;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
-.card-tags {
+.hot-badge,
+.coming-badge {
   position: absolute;
-  top: 14px;
-  left: 14px;
-  display: flex;
-  gap: 8px;
-  z-index: 3;
-}
-
-.card-genre {
-  padding: 5px 12px;
-  border-radius: 6px;
-  font-size: 11.5px;
+  top: 8px;
+  left: 8px;
+  padding: 4px 8px;
+  border-radius: 2px;
+  font-size: 12px;
   font-weight: 600;
+}
+.hot-badge {
+  background: var(--primary);
   color: #fff;
-  background: rgba(255,255,255,.12);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(255,255,255,.1);
+}
+.coming-badge {
+  background: #f5f5f5;
+  color: var(--text2);
 }
 
-.card-hot {
-  padding: 5px 12px;
-  border-radius: 6px;
-  font-size: 11.5px;
+.rating-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  padding: 4px 6px;
+  background: rgba(0,0,0,0.65);
+  border-radius: 4px;
+}
+.rating-value {
+  font-size: 14px;
   font-weight: 700;
-  color: #fff;
-  background: linear-gradient(135deg, var(--primary), #d63c3c);
-  box-shadow: 0 2px 12px rgba(255,94,94,.5);
-  animation: hot-pulse 1.5s ease-in-out infinite;
-}
-@keyframes hot-pulse {
-  0%, 100% { box-shadow: 0 2px 12px rgba(255,94,94,.5); }
-  50% { box-shadow: 0 4px 20px rgba(255,94,94,.8); }
+  color: var(--maoyan-yellow);
 }
 
-.card-rating {
-  position: absolute;
-  top: 14px;
-  right: 14px;
-  z-index: 3;
-  width: 42px;
-  height: 42px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--gold), #ff9f43);
-  color: #1a1a2e;
-  font-size: 15px;
-  font-weight: 800;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 4px 16px var(--gold-glow);
-}
-
-.card-overlay {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  padding: 18px 16px;
-  z-index: 2;
+.card-info {
+  padding: 10px 12px 14px;
 }
 
 .card-title {
-  font-size: 19px;
-  font-weight: 700;
-  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
   margin: 0 0 8px;
-  text-shadow: 0 2px 10px rgba(0,0,0,.6);
-  letter-spacing: .5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.card-meta {
+.card-attrs {
   display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
   flex-wrap: wrap;
-  gap: 6px;
-  font-size: 11.5px;
-  color: rgba(255,255,255,.75);
 }
-.card-meta span {
-  padding: 3px 9px;
+.attr-item {
+  font-size: 12px;
+  color: var(--text3);
+  background: #f5f5f5;
+  padding: 3px 8px;
+  border-radius: 2px;
+}
+
+.card-action {
+  margin-top: 8px;
+}
+.buy-btn,
+.wish-btn {
+  width: 100%;
+  padding: 8px 16px;
+  border: none;
   border-radius: 4px;
-  background: rgba(255,255,255,.08);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.buy-btn {
+  background: var(--primary);
+  color: #fff;
+}
+.buy-btn:hover {
+  background: var(--primary2);
+}
+.wish-btn {
+  background: #f5f5f5;
+  color: var(--text2);
+}
+.wish-btn:hover {
+  background: #eee;
 }
 </style>

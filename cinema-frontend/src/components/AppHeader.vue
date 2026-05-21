@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import AuthModal from './AuthModal.vue'
@@ -14,18 +14,6 @@ function navigateOrAuth(path) {
     showAuth.value = true
   }
 }
-
-/* ------------------- theme ------------------- */
-const isLight = ref(localStorage.getItem('cinema_theme') === 'light')
-
-function toggleTheme() {
-  isLight.value = !isLight.value
-  document.body.classList.toggle('light', isLight.value)
-  localStorage.setItem('cinema_theme', isLight.value ? 'light' : 'dark')
-}
-onMounted(() => {
-  if (isLight.value) document.body.classList.add('light')
-})
 
 /* ------------------- auth modal ------------------- */
 const showAuth = ref(false)
@@ -46,7 +34,7 @@ async function loadNotifications() {
     if (data.success) {
       notifications.value = data.data.map(n => ({
         id: n.id, title: n.title, text: n.content, isRead: n.isRead,
-        time: n.createdAt, action: 'navigate', target: (n.actionUrl && n.actionUrl !== '/user/center') ? n.actionUrl : '/user/center'
+        time: n.createdAt, action: 'navigate', target: (n.actionUrl && n.actionUrl !== '/user/center' ? n.actionUrl : '/user/center')
       }))
       unread.value = data.unreadCount || 0
       notifLoaded.value = true
@@ -80,7 +68,6 @@ async function markAllRead() {
 }
 
 // Reload when auth state changes
-import { watch } from 'vue'
 watch(() => auth.isLoggedIn, () => {
   if (auth.isLoggedIn) loadNotifications()
   else { notifications.value = []; unread.value = 0; notifLoaded.value = false }
@@ -106,22 +93,31 @@ onMounted(() => document.addEventListener('click', docClick))
   <header class="app-header">
     <div class="header-inner">
       <!-- logo -->
-      <RouterLink to="/" class="header-logo">&#127756; 星空影院</RouterLink>
+      <RouterLink to="/" class="header-logo">
+        <span class="logo-icon">🎬</span>
+        <span class="logo-text">汪眼电影</span>
+      </RouterLink>
 
       <!-- nav -->
       <nav class="header-nav">
-        <RouterLink to="/">首页</RouterLink>
-        <a href="#" @click.prevent="navigateOrAuth('/my/orders')">我的订单</a>
-        <a href="#" @click.prevent="navigateOrAuth('/user/center')">个人中心</a>
-        <RouterLink v-if="auth.isAdmin" to="/admin">后台管理</RouterLink>
-        <RouterLink to="/order/lookup">订单查询</RouterLink>
+        <RouterLink to="/" class="nav-item">电影</RouterLink>
+        <a href="#" @click.prevent="navigateOrAuth('/my/orders')" class="nav-item">我的订单</a>
+        <a href="#" @click.prevent="navigateOrAuth('/user/center')" class="nav-item">个人中心</a>
+        <RouterLink v-if="auth.isAdmin" to="/admin" class="nav-item">后台管理</RouterLink>
+        <RouterLink to="/order/lookup" class="nav-item">订单查询</RouterLink>
       </nav>
+
+      <!-- search (placeholder) -->
+      <div class="header-search">
+        <input type="text" placeholder="找电影/影人/影院" />
+        <span class="search-icon">🔍</span>
+      </div>
 
       <!-- right -->
       <div class="header-right">
         <!-- notification -->
         <div class="header-notif" @click.stop="toggleNotif">
-          <span class="notif-bell">&#128276;</span>
+          <span class="notif-icon">🔔</span>
           <span v-if="unread" class="notif-badge">{{ unread }}</span>
           <Transition name="fade">
             <div v-if="showNotif" class="notif-dropdown">
@@ -145,16 +141,12 @@ onMounted(() => document.addEventListener('click', docClick))
           </Transition>
         </div>
 
-        <!-- theme toggle -->
-        <button class="header-theme-btn" @click="toggleTheme" :title="isLight ? '切换暗色' : '切换亮色'">
-          {{ isLight ? '&#127769;' : '&#9728;' }}
-        </button>
-
         <!-- user area -->
         <template v-if="auth.isLoggedIn">
           <div class="header-user" @click.stop="showUser = !showUser">
             <span class="user-avatar">{{ auth.username.charAt(0).toUpperCase() }}</span>
             <span class="user-name">{{ auth.username }}</span>
+            <span class="user-arrow">▼</span>
             <Transition name="fade">
               <div v-if="showUser" class="user-dropdown">
                 <RouterLink to="/user/center" class="user-dd-item">个人中心</RouterLink>
@@ -165,7 +157,7 @@ onMounted(() => document.addEventListener('click', docClick))
           </div>
         </template>
         <template v-else>
-          <button class="header-login-btn" @click="openAuth">登录 / 注册</button>
+          <button class="header-login-btn" @click="openAuth">登录</button>
         </template>
       </div>
     </div>
@@ -179,37 +171,37 @@ onMounted(() => document.addEventListener('click', docClick))
   position: sticky;
   top: 0;
   z-index: 9000;
-  background: rgba(10,10,26,.85);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border-bottom: 1px solid rgba(255,255,255,.06);
-  box-shadow: 0 1px 20px rgba(0,0,0,.3);
+  background: #fff;
+  border-bottom: 1px solid var(--border);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
 }
 
 .header-inner {
-  max-width: 1300px;
+  max-width: 1200px;
   margin: 0 auto;
   display: flex;
   align-items: center;
-  height: 64px;
+  height: 70px;
   padding: 0 20px;
-  gap: 28px;
+  gap: 30px;
 }
 
 /* ---- logo ---- */
 .header-logo {
-  font-size: 22px;
-  font-weight: 800;
-  background: linear-gradient(135deg, var(--gold), #ff9f43);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  display: flex;
+  align-items: center;
+  gap: 8px;
   text-decoration: none;
-  white-space: nowrap;
-  letter-spacing: 2px;
   flex-shrink: 0;
 }
-.header-logo:hover { text-decoration: none; opacity: .85; transform: scale(1.03); }
+.header-logo:hover { opacity: 0.9; }
+.logo-icon { font-size: 26px; }
+.logo-text {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--primary);
+  letter-spacing: 1px;
+}
 
 /* ---- nav ---- */
 .header-nav {
@@ -217,31 +209,57 @@ onMounted(() => document.addEventListener('click', docClick))
   align-items: center;
   gap: 4px;
   flex: 1;
-  justify-content: center;
 }
-.header-nav a {
+.nav-item {
   padding: 8px 18px;
-  border-radius: 10px;
-  font-size: 13.5px;
+  border-radius: 6px;
+  font-size: 15px;
   font-weight: 500;
   color: var(--text2);
   text-decoration: none;
-  transition: all .2s;
+  transition: all 0.2s;
   white-space: nowrap;
-  position: relative;
 }
-.header-nav a:hover { color: #fff; background: rgba(255,255,255,.06); }
-.header-nav a.router-link-active {
-  color: #fff;
-  background: linear-gradient(135deg, rgba(255,94,94,.2), rgba(255,94,94,.1));
-  box-shadow: 0 2px 12px var(--primary-glow);
+.nav-item:hover {
+  color: var(--primary);
+}
+.nav-item.router-link-active {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+/* ---- search ---- */
+.header-search {
+  position: relative;
+  flex-shrink: 0;
+}
+.header-search input {
+  width: 260px;
+  padding: 9px 40px 9px 16px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: #f5f5f5;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+.header-search input:focus {
+  background: #fff;
+  border-color: var(--primary);
+}
+.search-icon {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 16px;
+  color: var(--text3);
 }
 
 /* ---- right ---- */
 .header-right {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 16px;
   flex-shrink: 0;
 }
 
@@ -251,49 +269,53 @@ onMounted(() => document.addEventListener('click', docClick))
   cursor: pointer;
   display: flex;
   align-items: center;
+  padding: 6px;
+  border-radius: 50%;
+  transition: background 0.15s;
 }
-.notif-bell {
-  font-size: 20px;
+.header-notif:hover { background: #f5f5f5; }
+.notif-icon {
+  font-size: 18px;
   color: var(--text2);
-  transition: color .2s;
 }
-.header-notif:hover .notif-bell { color: var(--text); }
 .notif-badge {
   position: absolute;
-  top: -4px;
-  right: -8px;
-  background: var(--danger);
+  top: 0;
+  right: 0;
+  background: var(--primary);
   color: #fff;
   font-size: 10px;
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 600;
+  border: 2px solid #fff;
 }
 .notif-dropdown {
   position: absolute;
   top: calc(100% + 12px);
   right: -10px;
   width: 300px;
-  background: var(--surface);
+  background: #fff;
   border: 1px solid var(--border);
-  border-radius: var(--radius);
-  box-shadow: 0 12px 40px rgba(0,0,0,.5);
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.12);
   overflow: hidden;
   z-index: 9100;
 }
 .notif-dd-title {
   padding: 14px 18px;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
   border-bottom: 1px solid var(--border);
   color: var(--text);
   display: flex;
   justify-content: space-between;
   align-items: center;
+  background: #fafafa;
 }
 .notif-clear-all {
   background: none;
@@ -304,44 +326,31 @@ onMounted(() => document.addEventListener('click', docClick))
   padding: 2px 6px;
   border-radius: 4px;
 }
-.notif-clear-all:hover { color: var(--primary); background: rgba(255,107,107,.08); }
+.notif-clear-all:hover { color: var(--primary); }
 .notif-empty { padding: 30px 18px; text-align: center; font-size: 13px; color: var(--text3); }
 .notif-dd-item {
   padding: 12px 18px 12px 32px;
   border-bottom: 1px solid var(--border);
-  transition: background .15s;
+  transition: background 0.15s;
   cursor: pointer;
   position: relative;
 }
 .notif-dd-item:last-child { border-bottom: none; }
-.notif-dd-item:hover { background: rgba(255,107,107,.06); }
-.notif-dd-item.notif-read { opacity: .55; }
-.notif-dd-item.notif-read:hover { opacity: .75; }
+.notif-dd-item:hover { background: #fafafa; }
+.notif-dd-item.notif-read { opacity: 0.55; }
+.notif-dd-item.notif-read:hover { opacity: 0.75; }
 .notif-dot {
   position: absolute;
   left: 14px;
   top: 50%;
   transform: translateY(-50%);
-  width: 8px; height: 8px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
   background: var(--primary);
-  box-shadow: 0 0 6px var(--primary-glow);
 }
 .notif-dd-text { font-size: 13px; color: var(--text); margin-bottom: 4px; line-height: 1.4; }
 .notif-dd-time { font-size: 11px; color: var(--text3); }
-
-/* theme */
-.header-theme-btn {
-  background: none;
-  border: none;
-  font-size: 20px;
-  cursor: pointer;
-  padding: 4px;
-  border-radius: 8px;
-  line-height: 1;
-  transition: background .15s;
-}
-.header-theme-btn:hover { background: rgba(255,255,255,.08); }
 
 /* user */
 .header-user {
@@ -350,33 +359,34 @@ onMounted(() => document.addEventListener('click', docClick))
   align-items: center;
   gap: 8px;
   cursor: pointer;
-  padding: 6px 10px;
-  border-radius: 8px;
-  transition: background .15s;
+  padding: 6px 12px;
+  border-radius: 20px;
+  transition: background 0.15s;
 }
-.header-user:hover { background: rgba(255,255,255,.06); }
+.header-user:hover { background: #f5f5f5; }
 .user-avatar {
-  width: 30px;
-  height: 30px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   background: linear-gradient(135deg, var(--primary), var(--primary2));
   color: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 700;
+  font-weight: 600;
   font-size: 14px;
 }
 .user-name { font-size: 14px; font-weight: 500; color: var(--text); }
+.user-arrow { font-size: 10px; color: var(--text3); }
 .user-dropdown {
   position: absolute;
   top: calc(100% + 10px);
   right: 0;
   min-width: 150px;
-  background: var(--surface);
+  background: #fff;
   border: 1px solid var(--border);
-  border-radius: var(--radius);
-  box-shadow: 0 12px 40px rgba(0,0,0,.5);
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.12);
   overflow: hidden;
   z-index: 9100;
 }
@@ -391,27 +401,32 @@ onMounted(() => document.addEventListener('click', docClick))
   border: none;
   text-align: left;
   cursor: pointer;
-  transition: background .15s;
+  transition: background 0.15s;
 }
-.user-dd-item:hover { background: rgba(255,255,255,.04); }
-.logout-btn { color: var(--danger); }
+.user-dd-item:hover { background: #fafafa; color: var(--primary); }
+.logout-btn { color: var(--text2); }
+.logout-btn:hover { color: var(--danger); }
 
 /* login btn */
 .header-login-btn {
-  padding: 7px 20px;
-  border-radius: 8px;
+  padding: 8px 24px;
+  border-radius: 20px;
   border: 1px solid var(--primary);
-  background: transparent;
+  background: #fff;
   color: var(--primary);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 500;
   cursor: pointer;
-  transition: all .2s;
+  transition: all 0.2s;
 }
-.header-login-btn:hover { background: rgba(255,107,107,.12); }
+.header-login-btn:hover {
+  background: var(--primary);
+  color: #fff;
+}
 
 /* responsive */
 @media (max-width: 768px) {
   .header-nav { display: none; }
+  .header-search { display: none; }
 }
 </style>
