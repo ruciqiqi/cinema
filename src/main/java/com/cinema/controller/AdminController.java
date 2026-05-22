@@ -5,6 +5,7 @@ import com.cinema.dto.request.UpdateUserRequest;
 import com.cinema.entity.*;
 import com.cinema.repository.*;
 import com.cinema.service.MovieService;
+import com.cinema.service.ShowtimeService;
 import com.cinema.service.SnackService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -18,6 +19,7 @@ import java.util.*;
 public class AdminController {
     private final MovieService movieService;
     private final SnackService snackService;
+    private final ShowtimeService showtimeService;
     private final MovieRepository movieRepository;
     private final ShowtimeRepository showtimeRepository;
     private final BookingRepository bookingRepository;
@@ -28,17 +30,17 @@ public class AdminController {
     private final UserCouponRepository userCouponRepository;
     private final ReviewRepository reviewRepository;
     private final AnnouncementRepository announcementRepository;
-    private final CinemaRepository cinemaRepository;
 
     public AdminController(MovieService movieService, SnackService snackService,
+                           ShowtimeService showtimeService,
                            MovieRepository movieRepository, ShowtimeRepository showtimeRepository,
                            BookingRepository bookingRepository, HallRepository hallRepository,
                            BookingSeatRepository bookingSeatRepository, UserRepository userRepository,
                            CouponRepository couponRepository, UserCouponRepository userCouponRepository,
-                           ReviewRepository reviewRepository, AnnouncementRepository announcementRepository,
-                           CinemaRepository cinemaRepository) {
+                           ReviewRepository reviewRepository, AnnouncementRepository announcementRepository) {
         this.movieService = movieService;
         this.snackService = snackService;
+        this.showtimeService = showtimeService;
         this.movieRepository = movieRepository;
         this.showtimeRepository = showtimeRepository;
         this.bookingRepository = bookingRepository;
@@ -49,7 +51,6 @@ public class AdminController {
         this.userCouponRepository = userCouponRepository;
         this.reviewRepository = reviewRepository;
         this.announcementRepository = announcementRepository;
-        this.cinemaRepository = cinemaRepository;
     }
 
     @GetMapping("/stats")
@@ -156,6 +157,17 @@ public class AdminController {
         Map<String, Object> result = new HashMap<>();
         showtimeRepository.deleteById(id);
         result.put("success", true);
+        return result;
+    }
+
+    @PostMapping("/showtimes/refresh")
+    @Operation(summary = "刷新场次日期", description = "删除过期场次并生成新的3天滚动窗口")
+    public Map<String, Object> refreshShowtimes() {
+        Map<String, Object> result = new HashMap<>();
+        int changes = showtimeService.maintainRollingShowtimes();
+        result.put("success", true);
+        result.put("changes", changes);
+        result.put("message", "场次日期已刷新，共" + changes + "条变更");
         return result;
     }
 
@@ -347,25 +359,6 @@ public class AdminController {
         return result;
     }
 
-    @GetMapping("/cinemas")
-    @Operation(summary = "获取影院列表", description = "获取所有影院")
-    public Map<String, Object> listCinemas() {
-        Map<String, Object> result = new HashMap<>();
-        result.put("success", true);
-        result.put("data", cinemaRepository.findAll());
-        return result;
-    }
-
-    @PostMapping("/cinemas")
-    @Operation(summary = "添加影院", description = "添加新影院")
-    public Map<String, Object> addCinema(@RequestBody Cinema cinema) {
-        Map<String, Object> result = new HashMap<>();
-        cinema.setId(null);
-        cinemaRepository.save(cinema);
-        result.put("success", true);
-        return result;
-    }
-
     @GetMapping("/stats/revenue")
     @Operation(summary = "收入统计", description = "获取收入统计数据")
     public Map<String, Object> revenueStats() {
@@ -397,7 +390,6 @@ public class AdminController {
         result.put("bookingCount", bookingRepository.count());
         result.put("hallCount", hallRepository.count());
         result.put("userCount", userRepository.count());
-        result.put("cinemaCount", cinemaRepository.count());
 
         double revenue = 0;
         int confirmedCount = 0;

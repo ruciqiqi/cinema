@@ -64,13 +64,6 @@ function confirmSeats() {
       <h3>选择座位 - {{ cart.currentShowtime?.hallName }}</h3>
       <div class="seat-timer" v-if="false">剩余 15:00</div>
     </div>
-    <div class="seats-legend">
-      <span class="legend-item"><span class="seat-demo available"></span> 可选</span>
-      <span class="legend-item"><span class="seat-demo selected"></span> 已选</span>
-      <span class="legend-item"><span class="seat-demo booked"></span> 已售</span>
-      <span class="legend-item"><span class="seat-demo vip"></span> VIP</span>
-    </div>
-    <div class="screen-indicator">银 幕</div>
     <SeatMap v-if="seats.length" v-model:selectedSeats="cart.selectedSeats" :seatMap="seats" :showtime="cart.currentShowtime" />
     <div style="text-align:center;margin-bottom:14px;">
       <button class="btn btn-sm btn-outline" @click="autoSelect">一键推荐最佳座位</button>
@@ -91,14 +84,6 @@ function confirmSeats() {
 .seats-header { display: flex; align-items: center; gap: 16px; margin-bottom: 16px; flex-wrap: wrap; }
 .seats-header h3 { font-size: 18px; color: var(--primary); }
 .seat-timer { color: var(--danger); font-size: 14px; font-weight: 600; margin-left: auto; }
-.seats-legend { display: flex; gap: 20px; margin-bottom: 16px; justify-content: center; flex-wrap: wrap; }
-.legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text3); }
-.seat-demo { display: inline-block; width: 22px; height: 22px; border-radius: 4px; border: 1px solid transparent; }
-.seat-demo.available { background: #2d5fa5; border-color: #4a90d9; }
-.seat-demo.selected { background: var(--primary); border-color: #ff8787; }
-.seat-demo.booked { background: var(--border); border-color: #333; }
-.seat-demo.vip { background: #6b4423; border: 2px solid var(--gold); }
-.screen-indicator { text-align: center; color: var(--text3); font-size: 13px; letter-spacing: 8px; padding: 10px; background: var(--surface2); border-radius: 0 0 60% 60%; margin-bottom: 24px; max-width: 300px; margin-left: auto; margin-right: auto; }
 .seats-footer { display: flex; justify-content: space-between; align-items: center; padding-top: 14px; border-top: 1px solid var(--border); }
 .selected-info { font-size: 16px; color: var(--gold); }
 .selected-info span { font-weight: 700; font-size: 20px; }

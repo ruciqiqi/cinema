@@ -175,7 +175,7 @@ function drawBigPie() {
       <div class="bs-card bs-metric">
         <h4>影片 & 场次</h4>
         <div class="bs-value">{{ stats.movieCount || 0 }}<span class="bs-unit">部</span></div>
-        <div class="bs-sub">{{ stats.cinemaCount || 0 }} 家影院 · {{ stats.showtimeCount || 0 }} 场次</div>
+        <div class="bs-sub">共 {{ stats.showtimeCount || 0 }} 场次</div>
       </div>
 
       <div class="bs-card bs-chart bs-full">
@@ -188,7 +188,7 @@ function drawBigPie() {
         <canvas id="bsBigPie"></canvas>
       </div>
       <div class="bs-card bs-chart" style="grid-column:span 2;">
-        <h4>🏆 影院排行</h4>
+        <h4>🏆 热门排行</h4>
         <div class="rank-list">
           <div v-for="(v,k,i) in Object.entries(stats.topMovies||{}).slice(0,6)" :key="k" class="rank-item">
             <span class="rank-num" :class="'rank-' + (i+1)">{{ i+1 }}</span>

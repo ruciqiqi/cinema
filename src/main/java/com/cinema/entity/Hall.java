@@ -16,7 +16,7 @@ public class Hall {
     private Long cinemaId;
 
     @Column(name = "hall_type", length = 30)
-    private String hallType = "STANDARD"; // STANDARD, IMAX, DOLBY, COUPLE
+    private String hallType = "STANDARD"; // STANDARD, IMAX, DOLBY, VIP
 
     @Column(name = "hall_rows")
     private Integer rows;

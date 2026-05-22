@@ -21,7 +21,6 @@ const bookings = ref([])
 const snacks = ref([])
 const coupons = ref([])
 const announcements = ref([])
-const cinemas = ref([])
 const users = ref([])
 const halls = ref([])
 
@@ -41,7 +40,6 @@ async function loadTab(tab) {
     case 'snacks': await loadSnacks(); break
     case 'coupons': await loadCoupons(); break
     case 'announcements': await loadAnnouncements(); break
-    case 'cinemas': await loadCinemas(); break
     case 'users': await loadUsers(); break
   }
 }
@@ -89,11 +87,6 @@ async function loadCoupons() {
 async function loadAnnouncements() {
   const res = await api.get('/admin/announcements')
   if (res.data.success) announcements.value = res.data.data
-}
-
-async function loadCinemas() {
-  const res = await api.get('/admin/cinemas')
-  if (res.data.success) cinemas.value = res.data.data
 }
 
 async function loadUsers() {
@@ -152,6 +145,20 @@ async function delShowtime(id) {
   await api.delete(`/admin/showtimes/${id}`)
   toast('已删除', 'success')
   loadShowtimes()
+}
+
+async function refreshShowtimes() {
+  try {
+    const res = await api.post('/admin/showtimes/refresh')
+    if (res.data.success) {
+      toast(res.data.message, 'success')
+      loadShowtimes()
+    } else {
+      toast('刷新失败', 'error')
+    }
+  } catch (e) {
+    toast('刷新失败', 'error')
+  }
 }
 
 async function cancelBooking(id) {
@@ -217,17 +224,6 @@ async function delAnnouncement(id) {
   loadAnnouncements()
 }
 
-async function addCinema() {
-  const d = {
-    name: document.getElementById('ciName')?.value?.trim(),
-    address: document.getElementById('ciAddress')?.value?.trim(),
-    phone: document.getElementById('ciPhone')?.value?.trim(),
-    status: 'open'
-  }
-  if (!d.name) { toast('请输入影院名称', 'error'); return }
-  const res = await api.post('/admin/cinemas', d)
-  if (res.data.success) { toast('添加成功', 'success'); loadCinemas(); }
-}
 </script>
 
 <template>
@@ -242,7 +238,6 @@ async function addCinema() {
       <a href="#" :class="['admin-nav', { active: activeTab === 'snacks' }]" @click.prevent="loadTab('snacks')">卖品管理</a>
       <a href="#" :class="['admin-nav', { active: activeTab === 'coupons' }]" @click.prevent="loadTab('coupons')">优惠券管理</a>
       <a href="#" :class="['admin-nav', { active: activeTab === 'announcements' }]" @click.prevent="loadTab('announcements')">公告管理</a>
-      <a href="#" :class="['admin-nav', { active: activeTab === 'cinemas' }]" @click.prevent="loadTab('cinemas')">影院管理</a>
       <a href="#" :class="['admin-nav', { active: activeTab === 'users' }]" @click.prevent="loadTab('users')">用户管理</a>
     </div>
     <div class="admin-content">
@@ -250,7 +245,6 @@ async function addCinema() {
       <template v-if="activeTab === 'stats' && stats">
         <h3>数据概览</h3>
         <div class="stats-grid">
-          <div class="stat-card"><div class="num">{{ stats.cinemaCount || 0 }}</div><div class="label">影院数</div></div>
           <div class="stat-card"><div class="num">{{ stats.movieCount }}</div><div class="label">影片数</div></div>
           <div class="stat-card"><div class="num">{{ stats.showtimeCount }}</div><div class="label">场次数</div></div>
           <div class="stat-card"><div class="num">{{ stats.bookingCount }}</div><div class="label">订单数</div></div>
@@ -295,6 +289,7 @@ async function addCinema() {
           <input id="stPriceStd" placeholder="标准票价" type="number" step="0.1" value="39.9">
           <input id="stPriceVip" placeholder="VIP票价" type="number" step="0.1" value="59.9">
           <button class="btn btn-primary" @click="addShowtime">添加场次</button>
+          <button class="btn btn-outline" @click="refreshShowtimes">刷新日期</button>
         </div>
         <table class="admin-table"><tr><th>ID</th><th>影厅</th><th>日期</th><th>时间</th><th>操作</th></tr>
           <tr v-for="s in showtimes" :key="s.id"><td>{{ s.id }}</td><td>{{ s.hallName }}</td><td>{{ s.showDate }}</td><td>{{ s.showTime }}</td>
@@ -354,19 +349,6 @@ async function addCinema() {
         <table class="admin-table"><tr><th>ID</th><th>标题</th><th>时间</th><th>操作</th></tr>
           <tr v-for="a in announcements" :key="a.id"><td>{{ a.id }}</td><td>{{ a.title }}</td><td>{{ a.createdAt }}</td>
             <td><button class="btn btn-sm btn-danger" @click="delAnnouncement(a.id)">删除</button></td></tr>
-        </table>
-      </template>
-
-      <!-- Cinemas -->
-      <template v-if="activeTab === 'cinemas'">
-        <h3>影院管理</h3>
-        <div class="admin-form">
-          <input id="ciName" placeholder="影院名称"><input id="ciAddress" placeholder="地址">
-          <input id="ciPhone" placeholder="电话">
-          <button class="btn btn-primary" @click="addCinema">添加影院</button>
-        </div>
-        <table class="admin-table"><tr><th>ID</th><th>名称</th><th>地址</th><th>电话</th></tr>
-          <tr v-for="c in cinemas" :key="c.id"><td>{{ c.id }}</td><td>{{ c.name }}</td><td>{{ c.address }}</td><td>{{ c.phone }}</td></tr>
         </table>
       </template>
 

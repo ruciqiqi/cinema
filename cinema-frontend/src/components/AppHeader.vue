@@ -113,7 +113,7 @@ onMounted(() => document.addEventListener('click', docClick))
       <!-- nav -->
       <nav class="header-nav">
         <RouterLink to="/" class="nav-item">电影</RouterLink>
-        <a href="#" @click.prevent="navigateOrAuth('/my/orders')" class="nav-item">我的订单</a>
+        <a v-if="!auth.isAdmin" href="#" @click.prevent="navigateOrAuth('/my/orders')" class="nav-item">我的订单</a>
         <a href="#" @click.prevent="navigateOrAuth('/user/center')" class="nav-item">个人中心</a>
         <RouterLink v-if="auth.isAdmin" to="/admin" class="nav-item">后台管理</RouterLink>
         <RouterLink to="/order/lookup" class="nav-item">订单查询</RouterLink>
@@ -121,7 +121,7 @@ onMounted(() => document.addEventListener('click', docClick))
 
       <!-- search -->
       <form class="header-search" @submit.prevent="handleSearch">
-        <input type="text" v-model="searchKeyword" placeholder="找电影/影人/影院" />
+        <input type="text" v-model="searchKeyword" placeholder="找电影/影人" />
         <span class="search-icon" @click="handleSearch">🔍</span>
       </form>
 

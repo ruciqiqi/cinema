@@ -8,4 +8,8 @@ public interface ShowtimeRepository extends JpaRepository<Showtime, Long> {
     List<Showtime> findByMovieId(Long movieId);
     List<Showtime> findByMovieIdAndShowDate(Long movieId, String showDate);
     List<Showtime> findByShowDate(String showDate);
+    List<Showtime> findByShowDateGreaterThanEqual(String showDate);
+    List<Showtime> findByMovieIdAndShowDateGreaterThanEqual(Long movieId, String showDate);
+    List<Showtime> findByMovieIdAndHallIdAndShowDate(Long movieId, Long hallId, String showDate);
+    int deleteByShowDateLessThan(String showDate);
 }

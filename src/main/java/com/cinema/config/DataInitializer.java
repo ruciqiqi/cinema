@@ -2,6 +2,7 @@ package com.cinema.config;
 
 import com.cinema.entity.*;
 import com.cinema.repository.*;
+import com.cinema.service.ShowtimeService;
 import com.cinema.util.PasswordUtil;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
@@ -22,6 +23,7 @@ public class DataInitializer implements CommandLineRunner {
     private final RefundRuleRepository refundRuleRepository;
     private final AnnouncementRepository announcementRepository;
     private NotificationRepository notificationRepository;
+    private final ShowtimeService showtimeService;
 
     public DataInitializer(MovieRepository movieRepository, HallRepository hallRepository,
                            ShowtimeRepository showtimeRepository, SeatRepository seatRepository,
@@ -29,7 +31,8 @@ public class DataInitializer implements CommandLineRunner {
                            CinemaRepository cinemaRepository, CouponRepository couponRepository,
                            RefundRuleRepository refundRuleRepository,
                            AnnouncementRepository announcementRepository,
-                           NotificationRepository notificationRepository) {
+                           NotificationRepository notificationRepository,
+                           ShowtimeService showtimeService) {
         this.movieRepository = movieRepository;
         this.hallRepository = hallRepository;
         this.showtimeRepository = showtimeRepository;
@@ -41,6 +44,7 @@ public class DataInitializer implements CommandLineRunner {
         this.refundRuleRepository = refundRuleRepository;
         this.announcementRepository = announcementRepository;
         this.notificationRepository = notificationRepository;
+        this.showtimeService = showtimeService;
     }
 
     @Override
@@ -49,6 +53,11 @@ public class DataInitializer implements CommandLineRunner {
         String today = LocalDate.now().toString();
 
         if (!fresh) {
+            // Maintain rolling 3-day showtime window on every startup
+            int changes = showtimeService.maintainRollingShowtimes();
+            if (changes > 0) {
+                System.out.println("=== 场次日期已更新: " + changes + " 条变更 ===");
+            }
             // Add coming soon movies if they don't exist yet
             long comingCount = movieRepository.findAll().stream()
                 .filter(m -> "coming".equals(m.getStatus())).count();
@@ -145,8 +154,8 @@ public class DataInitializer implements CommandLineRunner {
         addComingMovies();
 
         // ===== Halls (3 per cinema = 9 total) =====
-        String[] hallNames = {"1号激光IMAX厅", "2号杜比全景声厅", "3号豪华VIP厅", "4号情侣厅", "5号普通厅", "6号IMAX厅", "7号杜比厅", "8号VIP厅", "9号普通厅"};
-        String[] hallTypes = {"IMAX", "DOLBY", "VIP", "COUPLE", "STANDARD", "IMAX", "DOLBY", "VIP", "STANDARD"};
+        String[] hallNames = {"1号激光IMAX厅", "2号杜比全景声厅", "3号豪华VIP厅", "4号杜比厅", "5号普通厅", "6号IMAX厅", "7号杜比厅", "8号VIP厅", "9号普通厅"};
+        String[] hallTypes = {"IMAX", "DOLBY", "VIP", "DOLBY", "STANDARD", "IMAX", "DOLBY", "VIP", "STANDARD"};
         int[][] hallConfigs = {{8,14},{8,12},{6,10},{8,8},{8,12},{8,14},{8,12},{6,10},{8,12}};
         Long[] cinemaIds = {1L, 1L, 1L, 2L, 2L, 2L, 3L, 3L, 3L};
 
@@ -172,8 +181,6 @@ public class DataInitializer implements CommandLineRunner {
                         seat.setSeatType(r >= hallConfigs[h][0] - 2 ? "vip" : "standard");
                     } else if ("IMAX".equals(ht)) {
                         seat.setSeatType(r >= hallConfigs[h][0] - 3 ? "vip" : "standard");
-                    } else if ("COUPLE".equals(ht)) {
-                        seat.setSeatType("vip"); // all couple seats are VIP
                     } else {
                         seat.setSeatType("standard");
                     }

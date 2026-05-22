@@ -25,20 +25,36 @@ onMounted(async () => {
   loadShowtimes(movieId)
 })
 
+function normalizeDate(dateStr) {
+  if (!dateStr) return dateStr
+  const parts = dateStr.split('-')
+  if (parts.length === 3) {
+    return parts[0] + '-' + parts[1].padStart(2, '0') + '-' + parts[2].padStart(2, '0')
+  }
+  return dateStr
+}
+
 async function loadShowtimes(movieId) {
   try {
     const res = await api.get(`/showtimes?movieId=${movieId}`)
     if (res.data.success) {
       showtimeData.value = res.data.data || []
       const dSet = new Set()
-      showtimeData.value.forEach(s => dSet.add(s.showDate))
+      showtimeData.value.forEach(s => dSet.add(normalizeDate(s.showDate)))
       dates.value = [...dSet].sort()
       if (dates.value.length) currentDate.value = dates.value[0]
     }
   } catch (e) { console.error(e) }
 }
 
+function isShowtimePast(st) {
+  if (!st || !st.showDate || !st.showTime) return false
+  const dt = new Date(st.showDate + 'T' + st.showTime + ':00')
+  return dt < new Date()
+}
+
 function selectShowtime(st) {
+  if (isShowtimePast(st)) return
   cart.currentMovieId = movie.value.id
   cart.currentShowtimeId = st.id
   cart.currentHallId = st.hallId
@@ -47,7 +63,7 @@ function selectShowtime(st) {
 }
 
 function groupedShowtimes() {
-  const filtered = showtimeData.value.filter(s => s.showDate === currentDate.value)
+  const filtered = showtimeData.value.filter(s => normalizeDate(s.showDate) === currentDate.value)
   const groups = {}
   filtered.forEach(s => {
     const key = s.hallName
@@ -156,10 +172,10 @@ function getDateLabel(d) {
             <span class="hall-format">中文2D</span>
           </div>
           <div class="showtime-grid">
-            <div 
-              v-for="s in shows.sort((a,b) => a.showTime.localeCompare(b.showTime))" 
-              :key="s.id" 
-              class="time-card"
+            <div
+              v-for="s in shows.sort((a,b) => a.showTime.localeCompare(b.showTime))"
+              :key="s.id"
+              :class="['time-card', { 'time-card--past': isShowtimePast(s) }]"
               @click="selectShowtime(s)"
             >
               <div class="time-display">{{ s.showTime }}</div>
@@ -167,7 +183,7 @@ function getDateLabel(d) {
                 <span class="currency">¥</span>
                 <span class="amount">{{ s.priceStandard.toFixed(1) }}</span>
               </div>
-              <div class="buy-btn">购票</div>
+              <div class="buy-btn">{{ isShowtimePast(s) ? '已过场' : '购票' }}</div>
             </div>
           </div>
         </div>
@@ -432,6 +448,14 @@ function getDateLabel(d) {
   border-color: #e54847;
   transform: translateY(-3px);
   box-shadow: 0 4px 16px rgba(229,72,71,0.15);
+}
+.time-card--past {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+.time-card--past .buy-btn {
+  background: #999;
 }
 .time-display {
   font-size: 24px;

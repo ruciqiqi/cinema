@@ -53,6 +53,17 @@ public class BookingService {
             return result;
         }
 
+        // Check if showtime has passed
+        try {
+            LocalDateTime showtimeTime = LocalDateTime.parse(
+                    showtime.getShowDate() + "T" + showtime.getShowTime() + ":00");
+            if (showtimeTime.isBefore(LocalDateTime.now())) {
+                result.put("success", false);
+                result.put("message", "该场次已过期，无法购买");
+                return result;
+            }
+        } catch (Exception ignored) {}
+
         // Check if seats are already booked
         Set<Long> bookedSeats = seatService.getBookedSeatIds(showtimeId);
         for (Long seatId : seatIds) {

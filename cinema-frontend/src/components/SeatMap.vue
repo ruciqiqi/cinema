@@ -47,10 +47,6 @@
         <span class="legend-box legend-box--vip"></span>
         <span>VIP</span>
       </div>
-      <div class="legend-item">
-        <span class="legend-box legend-box--couple"></span>
-        <span>情侣座</span>
-      </div>
     </div>
   </div>
 </template>
@@ -103,13 +99,12 @@ function isSelected(seat) {
 function getSeatClass(seat) {
   if (seat.booked) return 'seat--booked'
   if (isSelected(seat)) return 'seat--selected'
-  if (seat.seatType === 'couple') return 'seat--couple'
   if (seat.seatType === 'vip') return 'seat--vip'
   return 'seat--available'
 }
 
 function seatTypeLabel(type) {
-  const map = { standard: '普通座', vip: 'VIP座', couple: '情侣座' }
+  const map = { standard: '普通座', vip: 'VIP座' }
   return map[type] || type
 }
 
@@ -242,20 +237,6 @@ function toggleSeat(seat) {
   color: #fff;
 }
 
-/* Couple (pink) */
-.seat--couple {
-  background: #fce4ec;
-  border-color: #ec407a;
-  color: #ec407a;
-  border-radius: 16px;
-  width: 36px;
-}
-
-.seat--couple:hover {
-  background: #ec407a;
-  color: #fff;
-}
-
 /* Legend */
 .legend {
   display: flex;
@@ -301,8 +282,4 @@ function toggleSeat(seat) {
   border-color: var(--gold);
 }
 
-.legend-box--couple {
-  background: #fce4ec;
-  border-color: #ec407a;
-}
 </style>

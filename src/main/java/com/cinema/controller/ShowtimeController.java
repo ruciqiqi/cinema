@@ -26,8 +26,7 @@ public class ShowtimeController {
         } else if (date != null) {
             showtimes = showtimeService.getByDate(date);
         } else {
-            showtimes = showtimeService.getByDate(
-                    java.time.LocalDate.now().toString());
+            showtimes = showtimeService.getFutureShowtimes();
         }
         result.put("success", true);
         // Group by movieId for convenience

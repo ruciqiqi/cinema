@@ -15,6 +15,7 @@ const currentDate = ref('all')
 const genres = ref([])
 const showDates = ref([])
 const showtimeMap = ref({})
+const allShowtimes = ref([])
 const searchKeyword = ref('')
 const activeTab = ref('showing')
 
@@ -39,7 +40,13 @@ onMounted(async () => {
       startAutoSlide()
     }
     if (showRes.data.success) {
-      buildShowtimeMap(showRes.data.data || [])
+      allShowtimes.value = showRes.data.data || []
+      buildShowtimeMap()
+    }
+    // Apply search keyword from route query after data loaded
+    if (route.query.search) {
+      searchKeyword.value = route.query.search
+      filterMovies()
     }
   } catch (e) {
     console.error(e)
@@ -50,7 +57,7 @@ onMounted(async () => {
 watch(() => route.query.search, (newVal) => {
   searchKeyword.value = newVal || ''
   filterMovies()
-}, { immediate: true })
+})
 
 function startAutoSlide() {
   autoSlideInterval = setInterval(() => {
@@ -81,13 +88,24 @@ function goToCarouselDetail(id) {
   router.push('/movie/' + id)
 }
 
-function buildShowtimeMap(showtimes) {
+function normalizeDate(dateStr) {
+  if (!dateStr) return dateStr
+  const parts = dateStr.split('-')
+  if (parts.length === 3) {
+    return parts[0] + '-' + parts[1].padStart(2, '0') + '-' + parts[2].padStart(2, '0')
+  }
+  return dateStr
+}
+
+function buildShowtimeMap() {
+  const showtimes = allShowtimes.value
   const map = {}
   const dates = new Set()
   showtimes.forEach(s => {
-    if (!map[s.showDate]) map[s.showDate] = new Set()
-    map[s.showDate].add(s.movieId)
-    dates.add(s.showDate)
+    const date = normalizeDate(s.showDate)
+    if (!map[date]) map[date] = new Set()
+    map[date].add(s.movieId)
+    dates.add(date)
   })
   showtimeMap.value = map
   showDates.value = [...dates].sort()
@@ -95,17 +113,19 @@ function buildShowtimeMap(showtimes) {
 
 function formatDateLabel(dateStr) {
   if (!dateStr) return dateStr
-  const parts = dateStr.split('-')
+  const d = normalizeDate(dateStr)
+  const parts = d.split('-')
   if (parts.length === 3) {
     const dt = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]))
     const today = new Date()
+    today.setHours(0, 0, 0, 0)
     const diff = Math.floor((dt - today) / (1000 * 60 * 60 * 24))
     if (diff === 0) return '今天'
     if (diff === 1) return '明天'
     if (diff === 2) return '后天'
     return parts[1] + '月' + parts[2] + '日'
   }
-  return dateStr
+  return d
 }
 
 function extractGenres(list) {
