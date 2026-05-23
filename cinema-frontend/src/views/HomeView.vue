@@ -100,15 +100,21 @@ function normalizeDate(dateStr) {
 function buildShowtimeMap() {
   const showtimes = allShowtimes.value
   const map = {}
-  const dates = new Set()
   showtimes.forEach(s => {
     const date = normalizeDate(s.showDate)
     if (!map[date]) map[date] = new Set()
     map[date].add(s.movieId)
-    dates.add(date)
   })
   showtimeMap.value = map
-  showDates.value = [...dates].sort()
+  // Always show today / tomorrow / day after tomorrow
+  const today = new Date()
+  const dates = []
+  for (let i = 0; i < 3; i++) {
+    const d = new Date(today)
+    d.setDate(d.getDate() + i)
+    dates.push(d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'))
+  }
+  showDates.value = dates
 }
 
 function formatDateLabel(dateStr) {
@@ -116,13 +122,15 @@ function formatDateLabel(dateStr) {
   const d = normalizeDate(dateStr)
   const parts = d.split('-')
   if (parts.length === 3) {
-    const dt = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]))
+    const m = parseInt(parts[1]), day = parseInt(parts[2])
+    const dt = new Date(parseInt(parts[0]), m - 1, day)
     const today = new Date()
     today.setHours(0, 0, 0, 0)
     const diff = Math.floor((dt - today) / (1000 * 60 * 60 * 24))
-    if (diff === 0) return '今天'
-    if (diff === 1) return '明天'
-    if (diff === 2) return '后天'
+    const dateSuffix = m + '/' + day
+    if (diff === 0) return '今天（' + dateSuffix + '）'
+    if (diff === 1) return '明天（' + dateSuffix + '）'
+    if (diff === 2) return '后天（' + dateSuffix + '）'
     return parts[1] + '月' + parts[2] + '日'
   }
   return d
@@ -156,7 +164,11 @@ function filterMovies() {
   
   if (searchKeyword.value) {
     const keyword = searchKeyword.value.toLowerCase()
-    filtered = filtered.filter(m => m.title.toLowerCase().includes(keyword))
+    filtered = filtered.filter(m =>
+      m.title.toLowerCase().includes(keyword) ||
+      (m.director && m.director.toLowerCase().includes(keyword)) ||
+      (m.cast && m.cast.toLowerCase().includes(keyword))
+    )
   }
   
   movies.value = filtered
