@@ -2,12 +2,7 @@
   <div class="order-card">
     <div class="order-card__header">
       <span class="order-card__code">{{ booking.bookingCode }}</span>
-      <span
-        class="order-card__status"
-        :class="booking.status === 'confirmed' ? 'order-card__status--confirmed' : 'order-card__status--cancelled'"
-      >
-        {{ booking.status === 'confirmed' ? '已确认' : '已取消' }}
-      </span>
+      <span :class="['order-card__status', statusClass]">{{ statusText }}</span>
     </div>
 
     <div class="order-card__body">
@@ -43,11 +38,11 @@
       <div class="order-card__amount-row">
         <div class="order-card__amount-item">
           <span class="order-card__label">金额</span>
-          <span class="order-card__price">¥{{ booking.totalPrice }}</span>
+          <span class="order-card__price">¥{{ formatMoney(booking.totalPrice) }}</span>
         </div>
         <div class="order-card__amount-item">
           <span class="order-card__label">实付</span>
-          <span class="order-card__price order-card__price--paid">¥{{ booking.actualPaid }}</span>
+          <span class="order-card__price order-card__price--paid">¥{{ formatMoney(booking.actualPaid || booking.totalPrice) }}</span>
         </div>
         <div class="order-card__amount-item">
           <span class="order-card__label">支付方式</span>
@@ -56,7 +51,7 @@
       </div>
     </div>
 
-    <div v-if="booking.status === 'confirmed'" class="order-card__actions">
+    <div v-if="showActions" class="order-card__actions">
       <button class="order-card__btn order-card__btn--outline" @click="$emit('refundPreview', booking)">
         退票预览
       </button>
@@ -76,6 +71,34 @@ const props = defineProps({
 })
 
 defineEmits(['cancel', 'refundPreview'])
+
+function formatMoney(n) {
+  if (n == null) return '0.00'
+  return Number(n).toFixed(2)
+}
+
+const isPast = computed(() => {
+  const b = props.booking
+  if (!b.showDate || !b.showTime) return false
+  const dt = new Date(b.showDate + 'T' + b.showTime + ':00')
+  return dt < new Date()
+})
+
+const statusText = computed(() => {
+  if (props.booking.status === 'cancelled') return '已取消'
+  if (isPast.value) return '已结束'
+  return '已确认'
+})
+
+const statusClass = computed(() => {
+  if (props.booking.status === 'cancelled') return 'order-card__status--cancelled'
+  if (isPast.value) return 'order-card__status--ended'
+  return 'order-card__status--confirmed'
+})
+
+const showActions = computed(() => {
+  return props.booking.status === 'confirmed' && !isPast.value
+})
 
 const snackText = computed(() => {
   if (!props.booking.snacksJson) return ''
@@ -143,6 +166,11 @@ const paymentMethodText = computed(() => {
 .order-card__status--cancelled {
   background: rgba(255, 77, 79, 0.12);
   color: var(--danger, #ff4d4f);
+}
+
+.order-card__status--ended {
+  background: rgba(153, 153, 153, 0.12);
+  color: #999;
 }
 
 .order-card__body {

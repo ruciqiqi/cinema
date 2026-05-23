@@ -11,6 +11,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     List<Booking> findByUserPhoneOrderByCreatedAtDesc(String userPhone);
     
     List<Booking> findByUserIdOrderByCreatedAtDesc(Long userId);
+    List<Booking> findByUserId(Long userId);
     
     @Query("SELECT b FROM Booking b WHERE b.showtimeId = :showtimeId AND b.status = 'confirmed'")
     List<Booking> findConfirmedByShowtimeId(@Param("showtimeId") Long showtimeId);

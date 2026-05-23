@@ -4,6 +4,7 @@ import com.cinema.dto.request.AddAnnouncementRequest;
 import com.cinema.dto.request.UpdateUserRequest;
 import com.cinema.entity.*;
 import com.cinema.repository.*;
+import com.cinema.service.BookingService;
 import com.cinema.service.MovieService;
 import com.cinema.service.ShowtimeService;
 import com.cinema.service.SnackService;
@@ -20,6 +21,7 @@ public class AdminController {
     private final MovieService movieService;
     private final SnackService snackService;
     private final ShowtimeService showtimeService;
+    private final BookingService bookingService;
     private final MovieRepository movieRepository;
     private final ShowtimeRepository showtimeRepository;
     private final BookingRepository bookingRepository;
@@ -32,7 +34,7 @@ public class AdminController {
     private final AnnouncementRepository announcementRepository;
 
     public AdminController(MovieService movieService, SnackService snackService,
-                           ShowtimeService showtimeService,
+                           ShowtimeService showtimeService, BookingService bookingService,
                            MovieRepository movieRepository, ShowtimeRepository showtimeRepository,
                            BookingRepository bookingRepository, HallRepository hallRepository,
                            BookingSeatRepository bookingSeatRepository, UserRepository userRepository,
@@ -41,6 +43,7 @@ public class AdminController {
         this.movieService = movieService;
         this.snackService = snackService;
         this.showtimeService = showtimeService;
+        this.bookingService = bookingService;
         this.movieRepository = movieRepository;
         this.showtimeRepository = showtimeRepository;
         this.bookingRepository = bookingRepository;
@@ -203,17 +206,14 @@ public class AdminController {
     @PutMapping("/bookings/{id}/cancel")
     @Operation(summary = "取消订单", description = "管理员取消订单")
     public Map<String, Object> cancelBooking(@PathVariable Long id) {
-        Map<String, Object> result = new HashMap<>();
         Booking b = bookingRepository.findById(id).orElse(null);
         if (b == null) {
+            Map<String, Object> result = new HashMap<>();
             result.put("success", false);
             result.put("message", "订单不存在");
             return result;
         }
-        b.setStatus("cancelled");
-        bookingRepository.save(b);
-        result.put("success", true);
-        return result;
+        return bookingService.cancelBooking(b.getBookingCode());
     }
 
     @GetMapping("/snacks")

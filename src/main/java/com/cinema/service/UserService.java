@@ -1,7 +1,9 @@
 package com.cinema.service;
 
 import com.cinema.config.JwtUtil;
+import com.cinema.entity.Booking;
 import com.cinema.entity.User;
+import com.cinema.repository.BookingRepository;
 import com.cinema.repository.UserRepository;
 import com.cinema.util.PasswordUtil;
 import org.springframework.stereotype.Service;
@@ -12,11 +14,42 @@ import java.util.*;
 @Service
 public class UserService {
     private final UserRepository userRepository;
+    private final BookingRepository bookingRepository;
     private final JwtUtil jwtUtil;
 
-    public UserService(UserRepository userRepository, JwtUtil jwtUtil) {
+    public UserService(UserRepository userRepository, BookingRepository bookingRepository, JwtUtil jwtUtil) {
         this.userRepository = userRepository;
+        this.bookingRepository = bookingRepository;
         this.jwtUtil = jwtUtil;
+    }
+
+    private void syncTotalSpent(Long userId) {
+        User user = userRepository.findById(userId).orElse(null);
+        if (user == null) return;
+        double total = 0;
+        for (Booking b : bookingRepository.findByUserId(userId)) {
+            if (!"cancelled".equals(b.getStatus())) {
+                total += b.getActualPaid() != null ? b.getActualPaid()
+                        : (b.getTotalPrice() != null ? b.getTotalPrice() : 0);
+            }
+        }
+        user.setTotalSpent(total);
+        int pts = 0;
+        for (Booking b : bookingRepository.findByUserId(userId)) {
+            if (!"cancelled".equals(b.getStatus())) {
+                double amt = b.getActualPaid() != null ? b.getActualPaid()
+                        : (b.getTotalPrice() != null ? b.getTotalPrice() : 0);
+                pts += (int) amt;
+            }
+        }
+        user.setPoints(pts);
+        double ts = user.getTotalSpent();
+        if (ts >= 5000) user.setMemberLevel(5);
+        else if (ts >= 2000) user.setMemberLevel(4);
+        else if (ts >= 1000) user.setMemberLevel(3);
+        else if (ts >= 500) user.setMemberLevel(2);
+        else user.setMemberLevel(1);
+        userRepository.save(user);
     }
 
     public Map<String, Object> register(String username, String password, String phone) {
@@ -81,6 +114,8 @@ public class UserService {
         if (user == null) {
             result.put("success", false); result.put("message", "用户不存在"); return result;
         }
+        syncTotalSpent(userId);
+        user = userRepository.findById(userId).orElse(null);
         result.put("success", true);
         Map<String, Object> profile = new HashMap<>();
         profile.put("id", user.getId());
@@ -161,6 +196,8 @@ public class UserService {
         if (user == null) {
             result.put("success", false); result.put("message", "用户不存在"); return result;
         }
+        syncTotalSpent(userId);
+        user = userRepository.findById(userId).orElse(null);
         result.put("success", true);
         result.put("points", user.getPoints());
         result.put("memberLevel", user.getMemberLevel());

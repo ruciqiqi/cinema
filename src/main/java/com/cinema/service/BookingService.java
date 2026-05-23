@@ -195,6 +195,8 @@ public class BookingService {
         m.put("userName", b.getUserName());
         m.put("userPhone", b.getUserPhone());
         m.put("totalPrice", b.getTotalPrice());
+        m.put("actualPaid", b.getActualPaid());
+        m.put("paymentMethod", b.getPaymentMethod());
         m.put("status", b.getStatus());
         m.put("createdAt", b.getCreatedAt());
         m.put("snacksJson", b.getSnacksJson());
@@ -220,8 +222,26 @@ public class BookingService {
             return result;
         }
         double refundAmount = calculateRefund(booking);
+        double paidAmount = booking.getActualPaid() != null ? booking.getActualPaid()
+                : (booking.getTotalPrice() != null ? booking.getTotalPrice() : 0);
         booking.setStatus("cancelled");
         bookingRepository.save(booking);
+
+        // Deduct total spent and points from user
+        if (booking.getUserId() != null) {
+            userRepository.findById(booking.getUserId()).ifPresent(user -> {
+                user.setTotalSpent(Math.max(0, user.getTotalSpent() - paidAmount));
+                user.setPoints(Math.max(0, user.getPoints() - (int) paidAmount));
+                double ts = user.getTotalSpent();
+                if (ts >= 5000) user.setMemberLevel(5);
+                else if (ts >= 2000) user.setMemberLevel(4);
+                else if (ts >= 1000) user.setMemberLevel(3);
+                else if (ts >= 500) user.setMemberLevel(2);
+                else user.setMemberLevel(1);
+                userRepository.save(user);
+            });
+        }
+
         result.put("success", true);
         result.put("message", "订单已取消");
         result.put("refundAmount", refundAmount);
