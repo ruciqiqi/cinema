@@ -252,7 +252,7 @@ async function delAnnouncement(id) {
           <div class="stat-card"><div class="num">&yen;{{ (stats.revenue || 0).toFixed(0) }}</div><div class="label">总营收</div></div>
         </div>
         <div class="chart-row">
-          <div class="chart-box"><h4>影片票房</h4><ChartBar :data="revenueData.byMovie || {}" /></div>
+          <div class="chart-box"><h4>影片票房</h4><ChartBar :data="stats.movieRevenue || {}" /></div>
           <div class="chart-box"><h4>每日营收</h4><ChartLine :data="revenueData.byDate || {}" /></div>
           <div class="chart-box"><h4>类型分布</h4><ChartPie :data="stats.genreDistribution || {}" /></div>
           <div class="chart-box"><h4>热门影片订单</h4><ChartBar :data="stats.topMovies || {}" color="#ff6b6b" /></div>

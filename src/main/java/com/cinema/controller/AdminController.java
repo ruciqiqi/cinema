@@ -402,6 +402,7 @@ public class AdminController {
         result.put("revenue", Math.round(revenue * 100.0) / 100.0);
         result.put("confirmedBookings", confirmedCount);
 
+        Map<String, Double> movieRevenue = new LinkedHashMap<>();
         Map<String, Integer> genreCount = new LinkedHashMap<>();
         for (Movie m : movieRepository.findAll()) {
             if (m.getGenre() != null) {
@@ -410,7 +411,11 @@ public class AdminController {
                     genreCount.merge(g.trim(), 1, Integer::sum);
                 }
             }
+            if (m.getTitle() != null && m.getBoxOffice() != null && m.getBoxOffice() > 0) {
+                movieRevenue.put(m.getTitle(), m.getBoxOffice());
+            }
         }
+        result.put("movieRevenue", movieRevenue);
         result.put("genreDistribution", genreCount);
 
         Map<String, Integer> movieBookingCount = new LinkedHashMap<>();
