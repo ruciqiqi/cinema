@@ -63,9 +63,10 @@ public class BookingController {
 
         Long userId = (Long) httpRequest.getAttribute("userId");
 
-        return bookingService.createBooking(request.getShowtimeId(), request.getSeatIds(), 
+        return bookingService.createBooking(request.getShowtimeId(), request.getSeatIds(),
                 request.getUserName().trim(), request.getUserPhone().trim(),
-                userId, request.getSnacksJson());
+                userId, request.getSnacksJson(),
+                request.getUserCouponId(), request.getDiscountAmount());
     }
 
     @GetMapping("/query")

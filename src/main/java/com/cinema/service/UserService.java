@@ -2,11 +2,16 @@ package com.cinema.service;
 
 import com.cinema.config.JwtUtil;
 import com.cinema.entity.Booking;
+import com.cinema.entity.Coupon;
 import com.cinema.entity.User;
+import com.cinema.entity.UserCoupon;
 import com.cinema.repository.BookingRepository;
+import com.cinema.repository.CouponRepository;
+import com.cinema.repository.UserCouponRepository;
 import com.cinema.repository.UserRepository;
 import com.cinema.util.PasswordUtil;
 import org.springframework.stereotype.Service;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -15,11 +20,17 @@ import java.util.*;
 public class UserService {
     private final UserRepository userRepository;
     private final BookingRepository bookingRepository;
+    private final CouponRepository couponRepository;
+    private final UserCouponRepository userCouponRepository;
     private final JwtUtil jwtUtil;
 
-    public UserService(UserRepository userRepository, BookingRepository bookingRepository, JwtUtil jwtUtil) {
+    public UserService(UserRepository userRepository, BookingRepository bookingRepository,
+                       CouponRepository couponRepository, UserCouponRepository userCouponRepository,
+                       JwtUtil jwtUtil) {
         this.userRepository = userRepository;
         this.bookingRepository = bookingRepository;
+        this.couponRepository = couponRepository;
+        this.userCouponRepository = userCouponRepository;
         this.jwtUtil = jwtUtil;
     }
 
@@ -34,15 +45,6 @@ public class UserService {
             }
         }
         user.setTotalSpent(total);
-        int pts = 0;
-        for (Booking b : bookingRepository.findByUserId(userId)) {
-            if (!"cancelled".equals(b.getStatus())) {
-                double amt = b.getActualPaid() != null ? b.getActualPaid()
-                        : (b.getTotalPrice() != null ? b.getTotalPrice() : 0);
-                pts += (int) amt;
-            }
-        }
-        user.setPoints(pts);
         double ts = user.getTotalSpent();
         if (ts >= 5000) user.setMemberLevel(5);
         else if (ts >= 2000) user.setMemberLevel(4);
@@ -219,9 +221,32 @@ public class UserService {
         }
         user.setPoints(user.getPoints() - points);
         userRepository.save(user);
-        double cash = points / 10.0; // 10 points = 1 yuan
+        double cash = points / 10.0;
+        String today = LocalDate.now().toString();
+        String expireDate = LocalDate.now().plusDays(30).toString();
+
+        Coupon coupon = new Coupon();
+        coupon.setCode("POINTS" + System.currentTimeMillis());
+        coupon.setName("积分兑换" + (int) cash + "元代金券");
+        coupon.setType("cash");
+        coupon.setValue(cash);
+        coupon.setMinAmount(0.0);
+        coupon.setStartDate(today);
+        coupon.setEndDate(expireDate);
+        coupon.setUsageLimit(1);
+        coupon.setUsedCount(0);
+        coupon.setStatus("active");
+        coupon = couponRepository.save(coupon);
+
+        UserCoupon uc = new UserCoupon();
+        uc.setUserId(userId);
+        uc.setCouponId(coupon.getId());
+        uc.setStatus("unused");
+        uc.setReceivedAt(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        userCouponRepository.save(uc);
+
         result.put("success", true);
-        result.put("message", "已兑换 " + cash + " 元代金券");
+        result.put("message", "已兑换 " + cash + " 元代金券，可在付款时使用");
         result.put("cash", cash);
         result.put("remainingPoints", user.getPoints());
         return result;

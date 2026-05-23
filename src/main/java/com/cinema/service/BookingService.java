@@ -19,6 +19,7 @@ public class BookingService {
     private final RefundRuleRepository refundRuleRepository;
     private final UserRepository userRepository;
     private final NotificationRepository notificationRepository;
+    private final UserCouponRepository userCouponRepository;
     private final SeatService seatService;
 
     public BookingService(BookingRepository bookingRepository, BookingSeatRepository bookingSeatRepository,
@@ -27,6 +28,7 @@ public class BookingService {
                        RefundRuleRepository refundRuleRepository,
                        UserRepository userRepository,
                        NotificationRepository notificationRepository,
+                       UserCouponRepository userCouponRepository,
                        SeatService seatService) {
         this.bookingRepository = bookingRepository;
         this.bookingSeatRepository = bookingSeatRepository;
@@ -37,13 +39,15 @@ public class BookingService {
         this.refundRuleRepository = refundRuleRepository;
         this.userRepository = userRepository;
         this.notificationRepository = notificationRepository;
+        this.userCouponRepository = userCouponRepository;
         this.seatService = seatService;
     }
 
     @Transactional
     public Map<String, Object> createBooking(Long showtimeId, List<Long> seatIds,
                                               String userName, String userPhone,
-                                              Long userId, String snacksJson) {
+                                              Long userId, String snacksJson,
+                                              Long userCouponId, Double discountAmount) {
         Map<String, Object> result = new HashMap<>();
 
         Showtime showtime = showtimeRepository.findById(showtimeId).orElse(null);
@@ -132,6 +136,13 @@ public class BookingService {
         booking.setShowTime(showtime.getShowTime());
         if (userId != null) booking.setUserId(userId);
         if (snacksSummary.length() > 0) booking.setSnacksJson(snacksSummary.toString());
+        if (userCouponId != null && discountAmount != null && discountAmount > 0) {
+            UserCoupon uc = userCouponRepository.findById(userCouponId).orElse(null);
+            if (uc != null) {
+                booking.setCouponId(uc.getCouponId());
+                booking.setDiscountAmount(discountAmount);
+            }
+        }
         booking = bookingRepository.save(booking);
 
         // Save booking seats
@@ -196,6 +207,7 @@ public class BookingService {
         m.put("userPhone", b.getUserPhone());
         m.put("totalPrice", b.getTotalPrice());
         m.put("actualPaid", b.getActualPaid());
+        m.put("discountAmount", b.getDiscountAmount());
         m.put("paymentMethod", b.getPaymentMethod());
         m.put("status", b.getStatus());
         m.put("createdAt", b.getCreatedAt());
@@ -419,10 +431,22 @@ public class BookingService {
         }
         booking.setPaymentMethod(paymentMethod != null ? paymentMethod : "wechat");
         booking.setPaymentStatus("paid");
-        double actualPaid = booking.getActualPaid() != null ? booking.getActualPaid() : booking.getTotalPrice();
+        double total = booking.getTotalPrice() != null ? booking.getTotalPrice() : 0;
+        double discount = booking.getDiscountAmount() != null ? booking.getDiscountAmount() : 0;
+        final double actualPaid = Math.round(Math.max(0, total - discount) * 100.0) / 100.0;
         booking.setActualPaid(actualPaid);
         booking.setTicketQrCode("CINEMA:" + bookingCode + ":" + System.currentTimeMillis());
         bookingRepository.save(booking);
+
+        // Mark coupon as used
+        if (booking.getCouponId() != null && booking.getUserId() != null) {
+            UserCoupon uc = userCouponRepository.findByUserIdAndCouponId(booking.getUserId(), booking.getCouponId());
+            if (uc != null && "unused".equals(uc.getStatus())) {
+                uc.setStatus("used");
+                uc.setUsedAt(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+                userCouponRepository.save(uc);
+            }
+        }
 
         // Award points (1 yuan = 1 point)
         if (booking.getUserId() != null) {

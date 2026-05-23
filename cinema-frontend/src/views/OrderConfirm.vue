@@ -27,6 +27,12 @@ const lastOrder = ref(null)
 const seatTotal = computed(() => cart.calcSeatTotal())
 const snackTotal = computed(() => cart.calcSnackTotal())
 const finalTotal = computed(() => cart.calcFinalTotal())
+const couponDiscount = computed(() => cart.appliedCoupon?.discount || 0)
+const actualPaid = computed(() => Math.max(0, finalTotal.value))
+
+function onCouponChange(val) {
+  cart.appliedCoupon = val
+}
 
 function seatLines() {
   return cart.selectedSeats.map(s => {
@@ -49,12 +55,15 @@ async function submitOrder() {
   submitting.value = true
 
   try {
+    const couponDiscount = cart.appliedCoupon?.discount || 0
     const body = {
       showtimeId: cart.currentShowtimeId,
       seatIds: cart.selectedSeats.map(s => s.id),
       userName: userName.value.trim(),
       userPhone: userPhone.value.trim(),
-      snacksJson: snacksJson()
+      snacksJson: snacksJson(),
+      userCouponId: cart.appliedCoupon?.userCouponId || null,
+      discountAmount: couponDiscount
     }
     if (proxyBuy.value && friendPhone.value) body.friendPhone = friendPhone.value
 
@@ -97,11 +106,11 @@ defineExpose({ lastOrder })
       <div class="summary-line"><span class="l">场次</span><span>{{ cart.currentShowtime.showDate }} {{ cart.currentShowtime.showTime }}</span></div>
       <div class="summary-line"><span class="l">座位</span><span>{{ seatLines().join('、') }}</span></div>
       <div v-if="snackLines().length" class="summary-line"><span class="l">卖品</span><span>{{ snackLines().join('、') }}</span></div>
-      <div v-if="cart.appliedCoupon" class="summary-line"><span class="l">优惠</span><span style="color:#2ecc71;">-¥{{ cart.appliedCoupon.discount.toFixed(2) }}</span></div>
-      <div class="summary-line total"><span class="l">实付</span><span>&yen;{{ finalTotal.toFixed(2) }}</span></div>
+      <div v-if="cart.appliedCoupon" class="summary-line"><span class="l">优惠</span><span style="color:#2ecc71;">-¥{{ couponDiscount.toFixed(2) }}</span></div>
+      <div class="summary-line total"><span class="l">实付</span><span>&yen;{{ actualPaid.toFixed(2) }}</span></div>
     </div>
 
-    <CouponSelector v-if="auth.isLoggedIn" v-model="cart.appliedCoupon" :orderAmount="seatTotal" />
+    <CouponSelector v-if="auth.isLoggedIn" :modelValue="cart.appliedCoupon" @update:modelValue="onCouponChange" :orderAmount="seatTotal" />
     <PaymentMethod v-model="cart.paymentMethod" />
 
     <div class="booking-form">
@@ -110,7 +119,7 @@ defineExpose({ lastOrder })
       <label class="checkbox-label"><input type="checkbox" v-model="proxyBuy"> 为亲友代购</label>
       <label v-if="proxyBuy">亲友手机号 <input v-model="friendPhone" placeholder="请输入亲友手机号"></label>
       <button class="btn btn-primary btn-block" :disabled="submitting" @click="submitOrder">
-        {{ submitting ? '提交中...' : '确认支付 ¥' + finalTotal.toFixed(2) }}
+        {{ submitting ? '提交中...' : '确认支付 ¥' + actualPaid.toFixed(2) }}
       </button>
       <button class="btn btn-outline btn-block" @click="$router.back()">返回修改</button>
     </div>

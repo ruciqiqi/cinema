@@ -63,12 +63,14 @@ public class CouponService {
             Coupon c = couponRepository.findById(uc.getCouponId()).orElse(null);
             if (c == null) continue;
             Map<String, Object> m = new HashMap<>();
+            m.put("userCouponId", uc.getId());
             m.put("id", uc.getId());
             m.put("couponId", c.getId());
             m.put("code", c.getCode());
             m.put("name", c.getName());
             m.put("type", c.getType());
             m.put("value", c.getValue());
+            m.put("discount", "discount".equals(c.getType()) ? 0 : c.getValue());
             m.put("minAmount", c.getMinAmount());
             m.put("endDate", c.getEndDate());
             m.put("status", uc.getStatus());

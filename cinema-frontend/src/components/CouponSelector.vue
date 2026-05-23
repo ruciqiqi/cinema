@@ -72,7 +72,7 @@ async function validateCoupon(userCouponId) {
       validateError.value = res.data.message || '优惠券不可用'
       return false
     }
-    return data
+    return res.data
   } catch (e) {
     validateError.value = '验证优惠券失败'
     return false
@@ -80,27 +80,21 @@ async function validateCoupon(userCouponId) {
 }
 
 async function handleChange(e) {
-  const userCouponId = e.target.value
-  if (!userCouponId) {
+  const id = parseInt(e.target.value)
+  if (!id) {
     emit('update:modelValue', null)
     validateError.value = ''
     return
   }
-  const selectedCoupon = coupons.value.find(c => c.userCouponId === userCouponId)
+  const selectedCoupon = coupons.value.find(c => c.userCouponId === id)
   if (!selectedCoupon) return
 
-  const result = await validateCoupon(userCouponId)
-  if (result && result !== true) {
+  const result = await validateCoupon(id)
+  if (result && result.success) {
+    const actualDiscount = result.discount || selectedCoupon.value || 0
     emit('update:modelValue', {
-      userCouponId,
-      discount: selectedCoupon.discount,
-      couponId: selectedCoupon.couponId,
-      amount: result.amount || result.discount || selectedCoupon.discount
-    })
-  } else if (result === true) {
-    emit('update:modelValue', {
-      userCouponId,
-      discount: selectedCoupon.discount,
+      userCouponId: id,
+      discount: actualDiscount,
       couponId: selectedCoupon.couponId
     })
   } else {

@@ -21,6 +21,12 @@ public class CreateBookingRequest {
     @Schema(description = "零食JSON数据")
     private String snacksJson;
 
+    @Schema(description = "用户优惠券ID")
+    private Long userCouponId;
+
+    @Schema(description = "优惠金额")
+    private Double discountAmount;
+
     public Long getShowtimeId() {
         return showtimeId;
     }
@@ -60,4 +66,10 @@ public class CreateBookingRequest {
     public void setSnacksJson(String snacksJson) {
         this.snacksJson = snacksJson;
     }
+
+    public Long getUserCouponId() { return userCouponId; }
+    public void setUserCouponId(Long userCouponId) { this.userCouponId = userCouponId; }
+
+    public Double getDiscountAmount() { return discountAmount; }
+    public void setDiscountAmount(Double discountAmount) { this.discountAmount = discountAmount; }
 }
