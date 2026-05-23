@@ -11,8 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 @Service
 public class ShowtimeService {
@@ -50,9 +49,11 @@ public class ShowtimeService {
         return showtimeRepository.findById(id).orElse(null);
     }
 
+    private static final int BUFFER_MINUTES = 15;
+
     /**
      * Maintain rolling 3-day showtime window.
-     * Deletes past-date showtimes and generates missing dates for the next 3 days.
+     * Clears all existing showtimes and regenerates conflict-free schedule.
      * Called on startup and via scheduled task / admin endpoint.
      */
     @Transactional
@@ -62,11 +63,13 @@ public class ShowtimeService {
         String dayAfter = LocalDate.now().plusDays(2).toString();
         String[] dates = {today, tomorrow, dayAfter};
 
-        // Delete past-date showtimes
-        int deleted = showtimeRepository.deleteByShowDateLessThan(today);
+        // Clear all existing showtimes to regenerate cleanly
+        int deleted = (int) showtimeRepository.count();
+        showtimeRepository.deleteAll();
+        showtimeRepository.flush();
 
         // Only generate if there are movies and halls
-        List<Movie> showingMovies = movieRepository.findByStatus("showing");
+        List<Movie> showingMovies = new ArrayList<>(movieRepository.findByStatus("showing"));
         List<Hall> halls = hallRepository.findAll();
         if (showingMovies.isEmpty() || halls.isEmpty()) return deleted;
 
@@ -84,47 +87,68 @@ public class ShowtimeService {
         int added = 0;
         int hallLimit = Math.min(halls.size(), 3);
 
-        for (Movie movie : showingMovies) {
+        for (String date : dates) {
             for (int h = 0; h < hallLimit; h++) {
-                for (String date : dates) {
-                    // Check if this movie+hall+date combo already exists
-                    List<Showtime> existing = showtimeRepository
-                            .findByMovieIdAndHallIdAndShowDate(movie.getId(), halls.get(h).getId(), date);
-                    if (!existing.isEmpty()) continue;
+                Long hallId = halls.get(h).getId();
+                String hallName = hallNames[h % hallNames.length];
+                double priceStd = priceConfigs[h % priceConfigs.length][0];
+                double priceVip = priceConfigs[h % priceConfigs.length][1];
+                String[] slots = timeSlots[h % timeSlots.length];
 
-                    int start = rnd.nextInt(timeSlots[h % timeSlots.length].length - 2);
-                    for (int t = start; t < start + 3 && t < timeSlots[h % timeSlots.length].length; t++) {
-                        String slotTime = timeSlots[h % timeSlots.length][t];
-                        // Check time conflict with existing showtimes in same hall+date
-                        if (hasTimeConflict(halls.get(h).getId(), date, slotTime, movie.getDuration())) continue;
+                List<int[]> occupied = new ArrayList<>();
+                List<Movie> moviesHere = new ArrayList<>(showingMovies);
+                Collections.shuffle(moviesHere, rnd);
 
-                        Showtime st = new Showtime();
-                        st.setMovieId(movie.getId());
-                        st.setHallId(halls.get(h).getId());
-                        st.setHallName(hallNames[h % hallNames.length]);
-                        st.setShowDate(date);
-                        st.setShowTime(slotTime);
-                        st.setPriceStandard(priceConfigs[h % priceConfigs.length][0]);
-                        st.setPriceVip(priceConfigs[h % priceConfigs.length][1]);
-                        showtimeRepository.save(st);
-                        added++;
+                // Round 1: each movie tries 1 slot
+                Set<Long> scheduled = new HashSet<>();
+                for (Movie movie : moviesHere) {
+                    if (tryAssign(movie, slots, occupied, hallId, hallName, date, priceStd, priceVip, rnd)) {
+                        scheduled.add(movie.getId());
                     }
+                }
+
+                // Round 2: unscheduled movies first, then any movie for remaining slots
+                for (Movie movie : moviesHere) {
+                    if (!scheduled.contains(movie.getId())) {
+                        tryAssign(movie, slots, occupied, hallId, hallName, date, priceStd, priceVip, rnd);
+                    }
+                }
+                for (Movie movie : moviesHere) {
+                    tryAssign(movie, slots, occupied, hallId, hallName, date, priceStd, priceVip, rnd);
                 }
             }
         }
 
+        showtimeRepository.flush();
         return deleted + added;
     }
 
-    private boolean hasTimeConflict(Long hallId, String date, String time, Integer duration) {
-        int newStart = parseTime(time);
-        int newEnd = newStart + (duration != null ? duration : 120);
-        List<Showtime> showtimes = showtimeRepository.findByHallIdAndShowDate(hallId, date);
-        for (Showtime s : showtimes) {
-            Movie m = movieRepository.findById(s.getMovieId()).orElse(null);
-            int existStart = parseTime(s.getShowTime());
-            int existEnd = existStart + (m != null && m.getDuration() != null ? m.getDuration() : 120);
-            if (newStart < existEnd && newEnd > existStart) return true;
+    private boolean tryAssign(Movie movie, String[] slots, List<int[]> occupied,
+                              Long hallId, String hallName, String date,
+                              double priceStd, double priceVip, Random rnd) {
+        int movieDuration = movie.getDuration() != null ? movie.getDuration() : 120;
+        List<Integer> order = new ArrayList<>();
+        for (int i = 0; i < slots.length; i++) order.add(i);
+        Collections.shuffle(order, rnd);
+        for (int idx : order) {
+            int newStart = parseTime(slots[idx]);
+            int newEnd = newStart + movieDuration + BUFFER_MINUTES;
+            boolean conflict = false;
+            for (int[] occ : occupied) {
+                if (newStart < occ[1] && newEnd > occ[0]) { conflict = true; break; }
+            }
+            if (conflict) continue;
+            Showtime st = new Showtime();
+            st.setMovieId(movie.getId());
+            st.setHallId(hallId);
+            st.setHallName(hallName);
+            st.setShowDate(date);
+            st.setShowTime(slots[idx]);
+            st.setPriceStandard(priceStd);
+            st.setPriceVip(priceVip);
+            showtimeRepository.save(st);
+            occupied.add(new int[]{newStart, newEnd});
+            return true;
         }
         return false;
     }

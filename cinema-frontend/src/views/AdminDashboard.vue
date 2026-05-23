@@ -27,12 +27,47 @@ const halls = ref([])
 const stFilterMovie = ref('')
 const stFilterHall = ref('')
 const stFilterDate = ref('')
+const stFilterTime = ref('')
+
+const stTimeOptions = computed(() => {
+  return [...new Set(showtimes.value.map(s => s.showTime))].sort()
+})
+const scheduleDate = ref('')
+
+const scheduleDates = computed(() => {
+  const dates = [...new Set(showtimes.value.map(s => s.showDate))].sort()
+  return dates
+})
+
+const scheduleTimeSlots = computed(() => {
+  const filtered = scheduleDate.value
+    ? showtimes.value.filter(s => s.showDate === scheduleDate.value)
+    : showtimes.value
+  return [...new Set(filtered.map(s => s.showTime))].sort()
+})
+
+const scheduleHallList = computed(() => {
+  const hallMap = new Map()
+  showtimes.value.forEach(s => {
+    if (!hallMap.has(s.hallId)) hallMap.set(s.hallId, s.hallName)
+  })
+  return [...hallMap.entries()].sort((a, b) => a[0] - b[0]).map(([id, name]) => ({ id, name }))
+})
+
+function getScheduleMovie(hallId, time) {
+  const filtered = scheduleDate.value
+    ? showtimes.value.filter(s => s.showDate === scheduleDate.value)
+    : showtimes.value
+  const st = filtered.find(s => s.hallId === hallId && s.showTime === time)
+  return st ? st.movieTitle : null
+}
 
 const filteredShowtimes = computed(() => {
   return showtimes.value.filter(s => {
     if (stFilterMovie.value && String(s.movieId) !== stFilterMovie.value) return false
     if (stFilterHall.value && String(s.hallId) !== stFilterHall.value) return false
     if (stFilterDate.value && s.showDate !== stFilterDate.value) return false
+    if (stFilterTime.value && s.showTime !== stFilterTime.value) return false
     return true
   })
 })
@@ -49,6 +84,12 @@ async function loadTab(tab) {
     case 'statsfull': router.push('/admin/bigscreen'); break
     case 'movies': await loadMovies(); break
     case 'showtimes': await loadShowtimes(); break
+    case 'schedule':
+      await loadShowtimes()
+      if (!scheduleDate.value && scheduleDates.value.length) {
+        scheduleDate.value = scheduleDates.value[0]
+      }
+      break
     case 'bookings': await loadBookings(); break
     case 'snacks': await loadSnacks(); break
     case 'coupons': await loadCoupons(); break
@@ -247,6 +288,7 @@ async function delAnnouncement(id) {
       <a href="#" :class="['admin-nav', { active: activeTab === 'statsfull' }]" @click.prevent="loadTab('statsfull')">数据大屏</a>
       <a href="#" :class="['admin-nav', { active: activeTab === 'movies' }]" @click.prevent="loadTab('movies')">影片管理</a>
       <a href="#" :class="['admin-nav', { active: activeTab === 'showtimes' }]" @click.prevent="loadTab('showtimes')">场次管理</a>
+      <a href="#" :class="['admin-nav', { active: activeTab === 'schedule' }]" @click.prevent="loadTab('schedule')">排片表</a>
       <a href="#" :class="['admin-nav', { active: activeTab === 'bookings' }]" @click.prevent="loadTab('bookings')">订单管理</a>
       <a href="#" :class="['admin-nav', { active: activeTab === 'snacks' }]" @click.prevent="loadTab('snacks')">卖品管理</a>
       <a href="#" :class="['admin-nav', { active: activeTab === 'coupons' }]" @click.prevent="loadTab('coupons')">优惠券管理</a>
@@ -314,12 +356,46 @@ async function delAnnouncement(id) {
             <option v-for="h in halls" :key="h.id" :value="String(h.id)">{{ h.name }}</option>
           </select>
           <input v-model="stFilterDate" placeholder="日期 YYYY-MM-DD">
-          <button class="btn btn-sm btn-outline" @click="stFilterMovie='';stFilterHall='';stFilterDate=''">清除筛选</button>
+          <select v-model="stFilterTime">
+            <option value="">全部时间</option>
+            <option v-for="t in stTimeOptions" :key="t" :value="t">{{ t }}</option>
+          </select>
+          <button class="btn btn-sm btn-outline" @click="stFilterMovie='';stFilterHall='';stFilterDate='';stFilterTime=''">清除筛选</button>
         </div>
         <table class="admin-table"><tr><th>ID</th><th>影片</th><th>影厅</th><th>日期</th><th>时间</th><th>操作</th></tr>
           <tr v-for="s in filteredShowtimes" :key="s.id"><td>{{ s.id }}</td><td>{{ s.movieTitle }}</td><td>{{ s.hallName }}</td><td>{{ s.showDate }}</td><td>{{ s.showTime }}</td>
             <td><button class="btn btn-sm btn-danger" @click="delShowtime(s.id)">删除</button></td></tr>
         </table>
+      </template>
+
+      <!-- Schedule Grid -->
+      <template v-if="activeTab === 'schedule'">
+        <h3>排片表</h3>
+        <div class="admin-form" style="margin-bottom:16px;">
+          <label style="margin-right:8px;">选择日期：</label>
+          <button v-for="d in scheduleDates" :key="d" class="btn btn-sm" :class="scheduleDate === d ? 'btn-primary' : 'btn-outline'" @click="scheduleDate = d" style="margin-right:6px;">{{ d }}</button>
+          <button v-if="scheduleDates.length" class="btn btn-sm btn-outline" @click="scheduleDate = ''" style="margin-left:8px;">全部</button>
+        </div>
+        <div v-if="scheduleTimeSlots.length && scheduleHallList.length" class="schedule-grid-wrapper">
+          <table class="admin-table schedule-table">
+            <thead>
+              <tr>
+                <th class="schedule-time-header">时间 \\ 影厅</th>
+                <th v-for="hall in scheduleHallList" :key="hall.id">{{ hall.name }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="time in scheduleTimeSlots" :key="time">
+                <td class="schedule-time-cell">{{ time }}</td>
+                <td v-for="hall in scheduleHallList" :key="hall.id" class="schedule-cell">
+                  <span v-if="getScheduleMovie(hall.id, time)" class="schedule-movie-tag">{{ getScheduleMovie(hall.id, time) }}</span>
+                  <span v-else class="schedule-empty">-</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div v-else style="color:#999;padding:40px;text-align:center;">暂无排片数据</div>
       </template>
 
       <!-- Bookings -->
@@ -530,5 +606,12 @@ async function delAnnouncement(id) {
   text-transform: uppercase; 
   letter-spacing: 1px;
 }
+.schedule-grid-wrapper { overflow-x: auto; }
+.schedule-table { min-width: 600px; }
+.schedule-time-header { white-space: nowrap; font-weight: 600; background: #f8f8f8; }
+.schedule-time-cell { white-space: nowrap; font-weight: 600; background: #fafafa; color: var(--primary, #e54847); text-align: center; min-width: 60px; }
+.schedule-cell { text-align: center; min-width: 120px; padding: 8px 6px; }
+.schedule-movie-tag { display: inline-block; background: var(--primary, #e54847); color: #fff; padding: 4px 10px; border-radius: 4px; font-size: 12px; font-weight: 500; max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.schedule-empty { color: #ccc; font-size: 14px; }
 @media(max-width:900px) { .admin-container { flex-direction: column; } .admin-sidebar { width: 100%; display: flex; gap: 6px; flex-wrap: wrap; padding: 12px; } .admin-sidebar h3 { display: none; } .admin-nav { padding: 6px 12px; font-size: 12px; } .admin-form { grid-template-columns: 1fr; } .chart-row { grid-template-columns: 1fr; } }
 </style>
