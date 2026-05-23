@@ -29,7 +29,48 @@ const stFilterHall = ref('')
 const stFilterDate = ref('')
 const stFilterTime = ref('')
 
+const stFormMovie = ref('')
+const stFormHall = ref('')
+const stFormDate = ref('')
+const stFormTime = ref('')
+const stFormPriceStd = ref('39.9')
+const stFormPriceVip = ref('59.9')
+
+const stDateOptions = computed(() => {
+  const today = new Date()
+  return [0, 1, 2].map(i => {
+    const d = new Date(today)
+    d.setDate(d.getDate() + i)
+    return d.toISOString().slice(0, 10)
+  })
+})
+
+const allTimeSlots = ['10:00', '10:30', '11:00', '13:30', '14:00', '14:30', '17:00', '18:30', '19:00', '20:30', '21:00', '21:30']
+
 const stTimeOptions = computed(() => {
+  if (!stFormHall.value || !stFormDate.value) return allTimeSlots
+  const hallId = parseInt(stFormHall.value)
+  const date = stFormDate.value
+  const movie = movies.value.find(m => String(m.id) === stFormMovie.value)
+  const duration = movie?.duration || 120
+  const buffer = 15
+  const occupied = showtimes.value
+    .filter(s => s.hallId === hallId && s.showDate === date)
+    .map(s => {
+      const sm = movies.value.find(m => m.id === s.movieId)
+      const sd = sm?.duration || 120
+      const [sh, smm] = s.showTime.split(':').map(Number)
+      return { start: sh * 60 + smm, end: sh * 60 + smm + sd + buffer }
+    })
+  return allTimeSlots.filter(t => {
+    const [h, m] = t.split(':').map(Number)
+    const newStart = h * 60 + m
+    const newEnd = newStart + duration + buffer
+    return !occupied.some(o => newStart < o.end && newEnd > o.start)
+  })
+})
+
+const stFilterTimeOptions = computed(() => {
   return [...new Set(showtimes.value.map(s => s.showTime))].sort()
 })
 const scheduleDate = ref('')
@@ -181,16 +222,16 @@ async function delMovie(id) {
 
 async function addShowtime() {
   const d = {
-    movieId: parseInt(document.getElementById('stMovieId')?.value),
-    hallId: parseInt(document.getElementById('stHallId')?.value),
-    showDate: document.getElementById('stDate')?.value?.trim(),
-    showTime: document.getElementById('stTime')?.value?.trim(),
-    priceStandard: parseFloat(document.getElementById('stPriceStd')?.value) || 39.9,
-    priceVip: parseFloat(document.getElementById('stPriceVip')?.value) || 59.9
+    movieId: parseInt(stFormMovie.value),
+    hallId: parseInt(stFormHall.value),
+    showDate: stFormDate.value,
+    showTime: stFormTime.value,
+    priceStandard: parseFloat(stFormPriceStd.value) || 39.9,
+    priceVip: parseFloat(stFormPriceVip.value) || 59.9
   }
-  if (!d.showDate || !d.showTime) { toast('请填写日期和时间', 'error'); return }
+  if (!d.movieId || !d.hallId || !d.showDate || !d.showTime) { toast('请完整填写信息', 'error'); return }
   const res = await api.post('/admin/showtimes', d)
-  if (res.data.success) { toast('添加成功', 'success'); loadShowtimes(); }
+  if (res.data.success) { toast('添加成功', 'success'); stFormTime.value = ''; loadShowtimes(); }
   else toast(res.data.message, 'error')
 }
 
@@ -338,11 +379,12 @@ async function delAnnouncement(id) {
       <template v-if="activeTab === 'showtimes'">
         <h3>场次管理</h3>
         <div class="admin-form">
-          <select id="stMovieId"><option v-for="m in movies" :key="m.id" :value="m.id">{{ m.title }}</option></select>
-          <select id="stHallId"><option v-for="h in halls" :key="h.id" :value="h.id">{{ h.name }}</option></select>
-          <input id="stDate" placeholder="日期 YYYY-MM-DD"><input id="stTime" placeholder="时间 HH:MM">
-          <input id="stPriceStd" placeholder="标准票价" type="number" step="0.1" value="39.9">
-          <input id="stPriceVip" placeholder="VIP票价" type="number" step="0.1" value="59.9">
+          <select v-model="stFormMovie"><option value="">选择影片</option><option v-for="m in movies" :key="m.id" :value="String(m.id)">{{ m.title }} ({{ m.duration }}分钟)</option></select>
+          <select v-model="stFormHall"><option value="">选择影厅</option><option v-for="h in halls" :key="h.id" :value="String(h.id)">{{ h.name }}</option></select>
+          <select v-model="stFormDate"><option value="">选择日期</option><option v-for="d in stDateOptions" :key="d" :value="d">{{ d }}</option></select>
+          <select v-model="stFormTime" :disabled="!stFormHall || !stFormDate"><option value="">选择时间</option><option v-for="t in stTimeOptions" :key="t" :value="t">{{ t }}</option></select>
+          <input v-model="stFormPriceStd" placeholder="标准票价" type="number" step="0.1">
+          <input v-model="stFormPriceVip" placeholder="VIP票价" type="number" step="0.1">
           <button class="btn btn-primary" @click="addShowtime">添加场次</button>
           <button class="btn btn-outline" @click="refreshShowtimes">刷新日期</button>
         </div>
@@ -358,7 +400,7 @@ async function delAnnouncement(id) {
           <input v-model="stFilterDate" placeholder="日期 YYYY-MM-DD">
           <select v-model="stFilterTime">
             <option value="">全部时间</option>
-            <option v-for="t in stTimeOptions" :key="t" :value="t">{{ t }}</option>
+            <option v-for="t in stFilterTimeOptions" :key="t" :value="t">{{ t }}</option>
           </select>
           <button class="btn btn-sm btn-outline" @click="stFilterMovie='';stFilterHall='';stFilterDate='';stFilterTime=''">清除筛选</button>
         </div>
