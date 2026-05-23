@@ -11,5 +11,6 @@ public interface ShowtimeRepository extends JpaRepository<Showtime, Long> {
     List<Showtime> findByShowDateGreaterThanEqual(String showDate);
     List<Showtime> findByMovieIdAndShowDateGreaterThanEqual(Long movieId, String showDate);
     List<Showtime> findByMovieIdAndHallIdAndShowDate(Long movieId, Long hallId, String showDate);
+    List<Showtime> findByHallIdAndShowDate(Long hallId, String showDate);
     int deleteByShowDateLessThan(String showDate);
 }

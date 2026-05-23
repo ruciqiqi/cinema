@@ -136,8 +136,23 @@ public class AdminController {
     @Operation(summary = "获取场次列表", description = "获取所有场次")
     public Map<String, Object> listShowtimes() {
         Map<String, Object> result = new HashMap<>();
+        List<Map<String, Object>> list = new ArrayList<>();
+        for (Showtime s : showtimeRepository.findAll()) {
+            Map<String, Object> m = new HashMap<>();
+            m.put("id", s.getId());
+            m.put("movieId", s.getMovieId());
+            Movie mv = movieRepository.findById(s.getMovieId()).orElse(null);
+            m.put("movieTitle", mv != null ? mv.getTitle() : "未知");
+            m.put("hallId", s.getHallId());
+            m.put("hallName", s.getHallName());
+            m.put("showDate", s.getShowDate());
+            m.put("showTime", s.getShowTime());
+            m.put("priceStandard", s.getPriceStandard());
+            m.put("priceVip", s.getPriceVip());
+            list.add(m);
+        }
         result.put("success", true);
-        result.put("data", showtimeRepository.findAll());
+        result.put("data", list);
         return result;
     }
 
@@ -148,10 +163,37 @@ public class AdminController {
         showtime.setId(null);
         Hall hall = hallRepository.findById(showtime.getHallId()).orElse(null);
         if (hall != null) showtime.setHallName(hall.getName());
+        // Check time conflict
+        Movie movie = movieRepository.findById(showtime.getMovieId()).orElse(null);
+        if (movie != null && movie.getDuration() != null) {
+            int newStart = parseTime(showtime.getShowTime());
+            int newEnd = newStart + movie.getDuration();
+            List<Showtime> sameHall = showtimeRepository.findByHallIdAndShowDate(showtime.getHallId(), showtime.getShowDate());
+            for (Showtime existing : sameHall) {
+                Movie existingMovie = movieRepository.findById(existing.getMovieId()).orElse(null);
+                int existStart = parseTime(existing.getShowTime());
+                int existEnd = existStart + (existingMovie != null && existingMovie.getDuration() != null ? existingMovie.getDuration() : 120);
+                if (newStart < existEnd && newEnd > existStart) {
+                    result.put("success", false);
+                    result.put("message", "该影厅此时段已有电影播放，请选择其他时间");
+                    return result;
+                }
+            }
+        }
         showtimeRepository.save(showtime);
         result.put("success", true);
         result.put("data", showtime);
         return result;
+    }
+
+    private int parseTime(String time) {
+        if (time == null) return 0;
+        String[] parts = time.split(":");
+        try {
+            return Integer.parseInt(parts[0]) * 60 + Integer.parseInt(parts[1]);
+        } catch (Exception e) {
+            return 0;
+        }
     }
 
     @DeleteMapping("/showtimes/{id}")

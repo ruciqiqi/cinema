@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, inject } from 'vue'
+import { ref, computed, onMounted, inject } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import { useRouter } from 'vue-router'
 import api from '../api'
@@ -23,6 +23,19 @@ const coupons = ref([])
 const announcements = ref([])
 const users = ref([])
 const halls = ref([])
+
+const stFilterMovie = ref('')
+const stFilterHall = ref('')
+const stFilterDate = ref('')
+
+const filteredShowtimes = computed(() => {
+  return showtimes.value.filter(s => {
+    if (stFilterMovie.value && String(s.movieId) !== stFilterMovie.value) return false
+    if (stFilterHall.value && String(s.hallId) !== stFilterHall.value) return false
+    if (stFilterDate.value && s.showDate !== stFilterDate.value) return false
+    return true
+  })
+})
 
 onMounted(async () => {
   if (!auth.isAdmin) { router.push('/'); return }
@@ -291,8 +304,20 @@ async function delAnnouncement(id) {
           <button class="btn btn-primary" @click="addShowtime">添加场次</button>
           <button class="btn btn-outline" @click="refreshShowtimes">刷新日期</button>
         </div>
-        <table class="admin-table"><tr><th>ID</th><th>影厅</th><th>日期</th><th>时间</th><th>操作</th></tr>
-          <tr v-for="s in showtimes" :key="s.id"><td>{{ s.id }}</td><td>{{ s.hallName }}</td><td>{{ s.showDate }}</td><td>{{ s.showTime }}</td>
+        <div class="admin-form" style="margin-top:12px;">
+          <select v-model="stFilterMovie">
+            <option value="">全部影片</option>
+            <option v-for="m in movies" :key="m.id" :value="String(m.id)">{{ m.title }}</option>
+          </select>
+          <select v-model="stFilterHall">
+            <option value="">全部影厅</option>
+            <option v-for="h in halls" :key="h.id" :value="String(h.id)">{{ h.name }}</option>
+          </select>
+          <input v-model="stFilterDate" placeholder="日期 YYYY-MM-DD">
+          <button class="btn btn-sm btn-outline" @click="stFilterMovie='';stFilterHall='';stFilterDate=''">清除筛选</button>
+        </div>
+        <table class="admin-table"><tr><th>ID</th><th>影片</th><th>影厅</th><th>日期</th><th>时间</th><th>操作</th></tr>
+          <tr v-for="s in filteredShowtimes" :key="s.id"><td>{{ s.id }}</td><td>{{ s.movieTitle }}</td><td>{{ s.hallName }}</td><td>{{ s.showDate }}</td><td>{{ s.showTime }}</td>
             <td><button class="btn btn-sm btn-danger" @click="delShowtime(s.id)">删除</button></td></tr>
         </table>
       </template>

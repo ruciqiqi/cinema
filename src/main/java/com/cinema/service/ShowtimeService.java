@@ -94,12 +94,16 @@ public class ShowtimeService {
 
                     int start = rnd.nextInt(timeSlots[h % timeSlots.length].length - 2);
                     for (int t = start; t < start + 3 && t < timeSlots[h % timeSlots.length].length; t++) {
+                        String slotTime = timeSlots[h % timeSlots.length][t];
+                        // Check time conflict with existing showtimes in same hall+date
+                        if (hasTimeConflict(halls.get(h).getId(), date, slotTime, movie.getDuration())) continue;
+
                         Showtime st = new Showtime();
                         st.setMovieId(movie.getId());
                         st.setHallId(halls.get(h).getId());
                         st.setHallName(hallNames[h % hallNames.length]);
                         st.setShowDate(date);
-                        st.setShowTime(timeSlots[h % timeSlots.length][t]);
+                        st.setShowTime(slotTime);
                         st.setPriceStandard(priceConfigs[h % priceConfigs.length][0]);
                         st.setPriceVip(priceConfigs[h % priceConfigs.length][1]);
                         showtimeRepository.save(st);
@@ -110,6 +114,29 @@ public class ShowtimeService {
         }
 
         return deleted + added;
+    }
+
+    private boolean hasTimeConflict(Long hallId, String date, String time, Integer duration) {
+        int newStart = parseTime(time);
+        int newEnd = newStart + (duration != null ? duration : 120);
+        List<Showtime> showtimes = showtimeRepository.findByHallIdAndShowDate(hallId, date);
+        for (Showtime s : showtimes) {
+            Movie m = movieRepository.findById(s.getMovieId()).orElse(null);
+            int existStart = parseTime(s.getShowTime());
+            int existEnd = existStart + (m != null && m.getDuration() != null ? m.getDuration() : 120);
+            if (newStart < existEnd && newEnd > existStart) return true;
+        }
+        return false;
+    }
+
+    private int parseTime(String time) {
+        if (time == null) return 0;
+        String[] parts = time.split(":");
+        try {
+            return Integer.parseInt(parts[0]) * 60 + Integer.parseInt(parts[1]);
+        } catch (Exception e) {
+            return 0;
+        }
     }
 
     @Scheduled(cron = "0 1 0 * * *")
