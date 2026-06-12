@@ -10,8 +10,12 @@ import com.cinema.service.ShowtimeService;
 import com.cinema.service.SnackService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import java.io.File;
+import java.io.IOException;
 import java.util.*;
 
 @RestController
@@ -116,6 +120,7 @@ public class AdminController {
         exist.setReleaseDate(movie.getReleaseDate());
         exist.setDescription(movie.getDescription());
         exist.setPosterBg(movie.getPosterBg());
+        exist.setPosterUrl(movie.getPosterUrl());
         exist.setRating(movie.getRating());
         exist.setStatus(movie.getStatus());
         movieRepository.save(exist);
@@ -129,6 +134,39 @@ public class AdminController {
         Map<String, Object> result = new HashMap<>();
         movieRepository.deleteById(id);
         result.put("success", true);
+        return result;
+    }
+
+    @Value("${app.upload-dir:uploads/posters}")
+    private String uploadDir;
+
+    @PostMapping("/upload/poster")
+    @Operation(summary = "上传海报图片", description = "上传海报图片并返回访问URL")
+    public Map<String, Object> uploadPoster(@RequestParam("file") MultipartFile file) {
+        Map<String, Object> result = new HashMap<>();
+        if (file.isEmpty()) {
+            result.put("success", false);
+            result.put("message", "请选择文件");
+            return result;
+        }
+        String originalName = file.getOriginalFilename();
+        String ext = originalName != null && originalName.contains(".")
+                ? originalName.substring(originalName.lastIndexOf(".")) : ".jpg";
+        String fileName = System.currentTimeMillis() + "_" + UUID.randomUUID().toString().substring(0, 8) + ext;
+
+        try {
+            String baseDir = System.getProperty("user.dir");
+            File dir = new File(baseDir, uploadDir);
+            if (!dir.exists()) dir.mkdirs();
+            File dest = new File(dir, fileName);
+            file.transferTo(dest);
+            String url = "/uploads/posters/" + fileName;
+            result.put("success", true);
+            result.put("url", url);
+        } catch (IOException e) {
+            result.put("success", false);
+            result.put("message", "上传失败: " + e.getMessage());
+        }
         return result;
     }
 

@@ -24,6 +24,28 @@ const announcements = ref([])
 const users = ref([])
 const halls = ref([])
 
+const posterUrl = ref('')
+const posterPreview = ref('')
+
+async function uploadPoster(e) {
+  const file = e.target.files[0]
+  if (!file) return
+  const fd = new FormData()
+  fd.append('file', file)
+  try {
+    const res = await api.post('/admin/upload/poster', fd, { headers: { 'Content-Type': 'multipart/form-data' } })
+    if (res.data.success) {
+      posterUrl.value = res.data.url
+      posterPreview.value = res.data.url
+      toast('海报上传成功', 'success')
+    } else {
+      toast(res.data.message || '上传失败', 'error')
+    }
+  } catch (err) {
+    toast('上传失败', 'error')
+  }
+}
+
 const stFilterMovie = ref('')
 const stFilterHall = ref('')
 const stFilterDate = ref('')
@@ -200,7 +222,7 @@ async function addMovie() {
     language: document.getElementById('mLanguage')?.value?.trim(),
     country: document.getElementById('mCountry')?.value?.trim(),
     releaseDate: document.getElementById('mReleaseDate')?.value?.trim(),
-    posterBg: document.getElementById('mPosterBg')?.value?.trim(),
+    posterUrl: posterUrl.value,
     rating: parseFloat(document.getElementById('mRating')?.value) || 0,
     status: document.getElementById('mStatus')?.value || 'showing',
     isHot: document.getElementById('mIsHot')?.value === 'true'
@@ -208,7 +230,12 @@ async function addMovie() {
   if (!d.title) { toast('请输入片名', 'error'); return }
   try {
     const res = await api.post('/admin/movies', d)
-    if (res.data.success) { toast('添加成功', 'success'); loadMovies(); }
+    if (res.data.success) {
+      toast('添加成功', 'success')
+      posterUrl.value = ''
+      posterPreview.value = ''
+      loadMovies()
+    }
     else toast(res.data.message, 'error')
   } catch (e) { toast('操作失败', 'error') }
 }
@@ -363,14 +390,23 @@ async function delAnnouncement(id) {
           <input id="mCast" placeholder="主演"><input id="mGenre" placeholder="类型">
           <input id="mDuration" placeholder="时长(分钟)" type="number"><input id="mLanguage" placeholder="语言">
           <input id="mCountry" placeholder="国家"><input id="mReleaseDate" placeholder="上映日期">
-          <input id="mPosterBg" placeholder="海报CSS渐变"><input id="mRating" placeholder="评分" step="0.1" type="number">
+          <div class="poster-upload">
+            <label class="btn btn-outline poster-upload-btn">
+              {{ posterPreview ? '更换海报' : '上传海报' }}
+              <input type="file" accept="image/*" @change="uploadPoster" hidden>
+            </label>
+            <img v-if="posterPreview" :src="posterPreview" class="poster-preview">
+          </div>
+          <input id="mRating" placeholder="评分" step="0.1" type="number">
           <select id="mStatus"><option value="showing">正在热映</option><option value="coming">即将上映</option></select>
           <select id="mIsHot"><option value="false">普通</option><option value="true">热门推荐</option></select>
           <textarea id="mDesc" placeholder="简介" rows="2"></textarea>
           <button class="btn btn-primary" @click="addMovie">添加影片</button>
         </div>
-        <table class="admin-table"><tr><th>ID</th><th>片名</th><th>类型</th><th>评分</th><th>操作</th></tr>
-          <tr v-for="m in movies" :key="m.id"><td>{{ m.id }}</td><td>{{ m.title }}</td><td>{{ m.genre }}</td><td>{{ (m.rating||0).toFixed(1) }}</td>
+        <table class="admin-table"><tr><th>海报</th><th>片名</th><th>类型</th><th>评分</th><th>操作</th></tr>
+          <tr v-for="m in movies" :key="m.id">
+            <td><img v-if="m.posterUrl" :src="m.posterUrl" style="width:36px;height:50px;object-fit:cover;border-radius:3px;"><span v-else style="color:#ccc;">无</span></td>
+            <td>{{ m.title }}</td><td>{{ m.genre }}</td><td>{{ (m.rating||0).toFixed(1) }}</td>
             <td><button class="btn btn-sm btn-danger" @click="delMovie(m.id)">删除</button></td></tr>
         </table>
       </template>
@@ -591,11 +627,14 @@ async function delAnnouncement(id) {
   padding: 20px;
   border-radius: 8px;
 }
-.admin-form input, .admin-form select, .admin-form textarea { 
-  padding: 10px 14px; 
+.admin-form input, .admin-form select, .admin-form textarea {
+  padding: 10px 14px;
   border: 1px solid var(--border);
   border-radius: 6px;
+  grid-column: span 2;
 }
+.admin-form .btn-primary { grid-column: span 2; }
+.admin-form .poster-upload { grid-column: span 1; display: flex; align-items: center; gap: 12px; }
 .admin-form textarea { 
   grid-column: 1 / -1; 
   resize: vertical; 
@@ -655,5 +694,8 @@ async function delAnnouncement(id) {
 .schedule-cell { text-align: center; min-width: 120px; padding: 8px 6px; }
 .schedule-movie-tag { display: inline-block; background: var(--primary, #e54847); color: #fff; padding: 4px 10px; border-radius: 4px; font-size: 12px; font-weight: 500; max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .schedule-empty { color: #ccc; font-size: 14px; }
+.poster-upload { display: flex; align-items: center; gap: 12px; }
+.poster-upload-btn { cursor: pointer; white-space: nowrap; }
+.poster-preview { width: 60px; height: 80px; object-fit: cover; border-radius: 4px; border: 1px solid #ddd; }
 @media(max-width:900px) { .admin-container { flex-direction: column; } .admin-sidebar { width: 100%; display: flex; gap: 6px; flex-wrap: wrap; padding: 12px; } .admin-sidebar h3 { display: none; } .admin-nav { padding: 6px 12px; font-size: 12px; } .admin-form { grid-template-columns: 1fr; } .chart-row { grid-template-columns: 1fr; } }
 </style>

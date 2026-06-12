@@ -4,15 +4,15 @@ Vue 3 + Vite 构建的在线影院订票系统前端，与 Spring Boot 后端配
 
 ## 技术栈
 
-| 技术 | 说明 |
-|---|---|
+| 技术                    | 说明                                    |
+| ----------------------- | --------------------------------------- |
 | Vue 3 (Composition API) | `<script setup>` 语法，响应式数据绑定 |
-| Vite 8 | 开发服务器、HMR 热更新、ESBuild 打包 |
-| Vue Router 4 | SPA 路由，组件懒加载 + 首页预加载 |
-| Pinia 2 | 状态管理（auth、cart 两个 Store） |
-| Axios | HTTP 客户端，拦截器自动附加 JWT Token |
-| Canvas API | 图表绘制，零第三方依赖 |
-| CSS Variables | 暗黑/明亮主题切换 |
+| Vite 8                  | 开发服务器、HMR 热更新、ESBuild 打包    |
+| Vue Router 4            | SPA 路由，组件懒加载 + 首页预加载       |
+| Pinia 2                 | 状态管理（auth、cart 两个 Store）       |
+| Axios                   | HTTP 客户端，拦截器自动附加 JWT Token   |
+| Canvas API              | 图表绘制，零第三方依赖                  |
+| CSS Variables           | 暗黑/明亮主题切换                       |
 
 ## 快速启动
 
@@ -66,10 +66,10 @@ npm run dev
 
 ### 测试账号
 
-| 角色 | 用户名 | 密码 |
-|---|---|---|
-| 管理员 | `admin` | `123456` |
-| 普通用户 | `test` | `123456` |
+| 角色     | 用户名    | 密码       |
+| -------- | --------- | ---------- |
+| 管理员   | `admin` | `123456` |
+| 普通用户 | `test`  | `123456` |
 
 ## 常见问题
 
@@ -139,18 +139,18 @@ src/
 
 ## 路由
 
-| 路径 | 页面 | 权限 |
-|---|---|---|
-| `/` | 首页 | - |
-| `/movie/:id` | 影片详情 | - |
-| `/seats/:showtimeId` | 选座 | - |
-| `/order/confirm` | 确认订单 | 需登录 |
-| `/order/success` | 支付成功 | 需登录 |
-| `/order/lookup` | 订单查询 | - |
-| `/my/orders` | 我的订单 | 需登录 |
-| `/user/center` | 个人中心 | 需登录 |
-| `/admin` | 后台管理 | 管理员 |
-| `/admin/bigscreen` | 数据大屏 | 管理员 |
+| 路径                   | 页面     | 权限   |
+| ---------------------- | -------- | ------ |
+| `/`                  | 首页     | -      |
+| `/movie/:id`         | 影片详情 | -      |
+| `/seats/:showtimeId` | 选座     | -      |
+| `/order/confirm`     | 确认订单 | 需登录 |
+| `/order/success`     | 支付成功 | 需登录 |
+| `/order/lookup`      | 订单查询 | -      |
+| `/my/orders`         | 我的订单 | 需登录 |
+| `/user/center`       | 个人中心 | 需登录 |
+| `/admin`             | 后台管理 | 管理员 |
+| `/admin/bigscreen`   | 数据大屏 | 管理员 |
 
 ## 功能
 
