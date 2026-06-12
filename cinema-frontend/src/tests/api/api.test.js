@@ -1,12 +1,21 @@
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import axios from 'axios'
 import api from '@/api'
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 
-vi.mock('axios')
+vi.mock('axios', () => ({
+  default: {
+    create: vi.fn((config) => ({
+      defaults: { baseURL: config?.baseURL },
+      interceptors: {
+        request: { use: vi.fn(), handlers: [] },
+        response: { use: vi.fn(), handlers: [] }
+      }
+    }))
+  }
+}))
 
 describe('API Module', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
     localStorage.clear()
   })
 
@@ -25,13 +34,9 @@ describe('API Module', () => {
   it('request interceptor adds Authorization header when token exists', () => {
     localStorage.setItem('cinema_token', 'test-token-123')
 
-    // 重新加载模块以获取新的拦截器
-    vi.resetModules()
-    const apiFresh = require('@/api').default
-
-    // 模拟调用
+    // 获取请求拦截器 fulfilled 函数
+    const handler = api.interceptors.request.use.mock.calls[0][0]
     const config = { headers: {} }
-    const handler = axios.create.mock.results[0].value.interceptors.request.handlers[0].fulfilled
     const result = handler(config)
 
     expect(result.headers.Authorization).toBe('Bearer test-token-123')
@@ -39,38 +44,32 @@ describe('API Module', () => {
 
   // ==================== FA-03 请求拦截器 - 无token不附加Header ====================
   it('request interceptor does not add Authorization header when no token', () => {
+    const handler = api.interceptors.request.use.mock.calls[0][0]
     const config = { headers: {} }
-    const handler = api.interceptors.request.handlers[0].fulfilled
     const result = handler(config)
 
     expect(result.headers.Authorization).toBeUndefined()
   })
 
   // ==================== FA-04 响应拦截器 - 401时清除localStorage ====================
-  it('response interceptor clears auth data on 401', () => {
+  it('response interceptor clears auth data on 401', async () => {
     localStorage.setItem('cinema_token', 'old-token')
     localStorage.setItem('cinema_username', 'testuser')
     localStorage.setItem('cinema_role', 'user')
 
-    const errorHandler = api.interceptors.response.handlers[0].rejected
+    const errorHandler = api.interceptors.response.use.mock.calls[0][1]
     const err = { response: { status: 401 } }
 
-    let rejected = false
-    try {
-      errorHandler(err)
-    } catch (e) {
-      rejected = true
-    }
+    await expect(errorHandler(err)).rejects.toBe(err)
 
     expect(localStorage.getItem('cinema_token')).toBeNull()
     expect(localStorage.getItem('cinema_username')).toBeNull()
     expect(localStorage.getItem('cinema_role')).toBeNull()
-    expect(rejected).toBe(true)
   })
 
   // ==================== FA-05 响应拦截器 - 200响应正常通过 ====================
   it('response interceptor passes through successful response', () => {
-    const successHandler = api.interceptors.response.handlers[0].fulfilled
+    const successHandler = api.interceptors.response.use.mock.calls[0][0]
     const mockResponse = { status: 200, data: { success: true } }
 
     const result = successHandler(mockResponse)
@@ -80,21 +79,15 @@ describe('API Module', () => {
   })
 
   // ==================== FA-06 响应拦截器 - 非401错误保留token ====================
-  it('response interceptor preserves auth data on non-401 errors', () => {
+  it('response interceptor preserves auth data on non-401 errors', async () => {
     localStorage.setItem('cinema_token', 'valid-token')
     localStorage.setItem('cinema_username', 'testuser')
 
-    const errorHandler = api.interceptors.response.handlers[0].rejected
+    const errorHandler = api.interceptors.response.use.mock.calls[0][1]
     const err = { response: { status: 500 } }
 
-    let rejected = false
-    try {
-      errorHandler(err)
-    } catch (e) {
-      rejected = true
-    }
+    await expect(errorHandler(err)).rejects.toBe(err)
 
     expect(localStorage.getItem('cinema_token')).toBe('valid-token')
-    expect(rejected).toBe(true)
   })
 })
