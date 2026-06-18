@@ -1,7 +1,7 @@
 import { mount } from '@vue/test-utils'
 import MovieCard from '@/components/MovieCard.vue'
-import { createRouter, createWebHistory } from 'vue-router'
-import { describe, it, expect } from 'vitest'
+import { createRouter, createMemoryHistory } from 'vue-router'
+import { describe, it, expect, vi } from 'vitest'
 
 describe('MovieCard.vue', () => {
   const movie = {
@@ -15,7 +15,7 @@ describe('MovieCard.vue', () => {
 
   it('renders movie information correctly', () => {
     const router = createRouter({
-      history: createWebHistory(),
+      history: createMemoryHistory(),
       routes: [
         { path: '/movie/:id', name: 'MovieDetail', component: { template: '<div></div>' } }
       ]
@@ -29,14 +29,14 @@ describe('MovieCard.vue', () => {
     })
 
     expect(wrapper.find('.card-title').text()).toBe('Test Movie')
-    expect(wrapper.find('.card-genre').text()).toBe('Action')
-    expect(wrapper.find('.card-rating').text()).toBe('8.5')
-    expect(wrapper.find('.card-meta span').text()).toBe('120分钟')
+    expect(wrapper.findAll('.attr-item')[0].text()).toBe('Action')
+    expect(wrapper.find('.rating-value').text()).toBe('8.5')
+    expect(wrapper.findAll('.attr-item')[1].text()).toBe('120分钟')
   })
 
   it('triggers navigation when clicked', async () => {
     const router = createRouter({
-      history: createWebHistory(),
+      history: createMemoryHistory(),
       routes: [
         { path: '/movie/:id', name: 'MovieDetail', component: { template: '<div></div>' } }
       ]
@@ -52,7 +52,7 @@ describe('MovieCard.vue', () => {
     })
 
     await wrapper.trigger('click')
-    
+
     expect(pushSpy).toHaveBeenCalledWith('/movie/1')
   })
 })

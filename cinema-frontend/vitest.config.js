@@ -9,14 +9,19 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
+      include: [
+        'src/api/**',
+        'src/stores/**',
+        'src/components/**'
+      ],
       exclude: [
         'node_modules/',
         'dist/',
         'src/main.js',
         'src/App.vue',
-        'src/router/',
-        'src/api/',
-        'src/stores/'
+        'src/router/**',
+        '**/*.test.js',
+        '**/*.test.ts'
       ]
     },
     globals: true
